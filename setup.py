@@ -19,8 +19,8 @@ setup(
     name="deriva.qt",
     description="Graphical User Interface tools for DERIVA",
     url='https://github.com/informatics-isi-edu/deriva-qt',
-    maintainer='USC Information Sciences Institute ISR Division',
-    maintainer_email='misd-support@isi.edu',
+    maintainer='USC Information Sciences Institute, Informatics Systems Research Division',
+    maintainer_email='isrd-support@isi.edu',
     version=__version__,
     packages=find_packages(),
     package_data={'deriva.qt': ['upload_gui/conf/config.json']},
@@ -39,7 +39,7 @@ setup(
         'PyQt5'
     ],
     install_requires=[
-        'deriva>=0.4.3',
+        'deriva>=0.5.8',
     ],
     license='GNU GPL 3.0',
     classifiers=[
@@ -50,7 +50,8 @@ setup(
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.5'
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6'
     ]
 )
 
