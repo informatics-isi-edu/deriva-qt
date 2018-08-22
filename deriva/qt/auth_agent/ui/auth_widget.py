@@ -12,11 +12,15 @@ from PyQt5.QtWidgets import qApp
 from PyQt5.QtNetwork import QNetworkCookie
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile
 from deriva.core import read_config, read_credential, write_credential, load_cookies_from_file, \
-    format_exception, DEFAULT_SESSION_CONFIG, DEFAULT_CREDENTIAL
+    format_exception, DEFAULT_SESSION_CONFIG, DEFAULT_CREDENTIAL, DEFAULT_COOKIE_JAR_FILE
 from deriva.qt import __version__ as VERSION
 
 DEFAULT_CONFIG = {
-  "servers": []
+  "servers": [],
+  "cookie_jars": [
+    DEFAULT_COOKIE_JAR_FILE,
+    os.path.join(os.path.expanduser(os.path.normpath("~/.bdbag")), "deriva-cookies.txt")
+  ]
 }
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser(os.path.normpath("~/.deriva")), "auth-agent-config.json")
@@ -227,7 +231,12 @@ class AuthWidget(QWebEngineView):
                                   expires=0,
                                   discard=False,
                                   secure=True))
-                self.cookie_jar.save(ignore_discard=True, ignore_expires=True)
+                for path in self.config.get("cookie_jars", DEFAULT_CONFIG["cookie_jars"]):
+                    path_dir = os.path.dirname(path)
+                    if os.path.isdir(os.path.dirname(path_dir)):
+                        self.cookie_jar.save(path, ignore_discard=True, ignore_expires=True)
+                    else:
+                        logging.debug("Cookie jar save path [%s] does not exist." % path_dir)
             self.authn_session_page.setUrl(QUrl(self.auth_url.toString() + "/authn/session"))
 
     def _onCookieRemoved(self, cookie):
