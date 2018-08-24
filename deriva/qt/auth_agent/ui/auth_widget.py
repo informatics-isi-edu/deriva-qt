@@ -5,17 +5,22 @@ import requests
 import time
 import platform
 from requests.adapters import HTTPAdapter
+from requests.cookies import create_cookie
 from requests.packages.urllib3.util.retry import Retry
 from PyQt5.QtCore import Qt, QTimer, QUrl
 from PyQt5.QtWidgets import qApp
 from PyQt5.QtNetwork import QNetworkCookie
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile
-from deriva.core import read_config, read_credential, write_credential, format_exception, DEFAULT_SESSION_CONFIG, \
-    DEFAULT_CREDENTIAL
+from deriva.core import read_config, read_credential, write_credential, load_cookies_from_file, \
+    format_exception, DEFAULT_SESSION_CONFIG, DEFAULT_CREDENTIAL, DEFAULT_COOKIE_JAR_FILE
 from deriva.qt import __version__ as VERSION
 
 DEFAULT_CONFIG = {
-  "servers": []
+  "servers": [],
+  "cookie_jars": [
+    DEFAULT_COOKIE_JAR_FILE,
+    os.path.join(os.path.expanduser(os.path.normpath("~/.bdbag")), "deriva-cookies.txt")
+  ]
 }
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser(os.path.normpath("~/.deriva")), "auth-agent-config.json")
@@ -34,29 +39,32 @@ SUCCESS_HTML = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><titl
 
 
 class AuthWidget(QWebEngineView):
-    config = None
-    config_file = DEFAULT_CONFIG_FILE
-    credential = DEFAULT_CREDENTIAL
-    credential_file = None
-    auth_url = None
-    authn_session = None
-    authn_session_page = None
-    authn_cookie_name = None
-    authn_expires = time.time()
-    cookie_persistence = False
-    _success_callback = None
-    _session = requests.session()
-    token = None
 
     def __init__(self, parent, config=None, credential_file=None, cookie_persistence=False):
         super(AuthWidget, self).__init__(parent)
+
+        self.config = None
+        self.config_file = DEFAULT_CONFIG_FILE
+        self.credential = DEFAULT_CREDENTIAL
+        self.credential_file = None
+        self.cookie_file = None
+        self.cookie_jar = None
+        self.auth_url = None
+        self.authn_session = None
+        self.authn_session_page = None
+        self.authn_cookie_name = None
+        self.authn_expires = time.time()
+        self._success_callback = None
+        self._session = requests.session()
+        self.token = None
+
+        info = "%s v%s [Python %s, %s]" % (
+            self.__class__.__name__, VERSION, platform.python_version(), platform.platform(aliased=True))
+        logging.info("Initializing authorization provider: %s" % info)
         self.cookie_persistence = cookie_persistence
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._onTimerFired)
         self.configure(config, credential_file)
-        info = "%s v%s [Python %s, %s]" % (
-            self.__class__.__name__, VERSION, platform.python_version(), platform.platform(aliased=True))
-        logging.info("Initializing authorization provider: %s" % info)
         # logging.getLogger().setLevel(logging.TRACE)
 
     def configure(self, config, credential_file):
@@ -72,6 +80,9 @@ class AuthWidget(QWebEngineView):
         if config.get("port") is not None:
             self.auth_url.setPort(config["port"])
         self.authn_cookie_name = self.config.get("cookie_name", "webauthn")
+
+        self.cookie_file = DEFAULT_SESSION_CONFIG.get("cookie_jar")
+        self.cookie_jar = load_cookies_from_file(self.cookie_file)
 
         retries = Retry(connect=DEFAULT_SESSION_CONFIG['retry_connect'],
                         read=DEFAULT_SESSION_CONFIG['retry_read'],
@@ -211,6 +222,21 @@ class AuthWidget(QWebEngineView):
                 write_credential(self.credential_file, creds)
             self.token = cookie_val
             self._session.cookies.set(self.authn_cookie_name, cookie_val, domain=host, path='/')
+            if self.cookie_jar:
+                self.cookie_jar.set_cookie(
+                    create_cookie(self.authn_cookie_name,
+                                  cookie_val,
+                                  domain=host,
+                                  path='/',
+                                  expires=0,
+                                  discard=False,
+                                  secure=True))
+                for path in self.config.get("cookie_jars", DEFAULT_CONFIG["cookie_jars"]):
+                    path_dir = os.path.dirname(path)
+                    if os.path.isdir(os.path.dirname(path_dir)):
+                        self.cookie_jar.save(path, ignore_discard=True, ignore_expires=True)
+                    else:
+                        logging.debug("Cookie jar save path [%s] does not exist." % path_dir)
             self.authn_session_page.setUrl(QUrl(self.auth_url.toString() + "/authn/session"))
 
     def _onCookieRemoved(self, cookie):
@@ -218,6 +244,8 @@ class AuthWidget(QWebEngineView):
         cookie_name = str(cookie.name(), encoding='utf-8')
         if cookie_name == self.authn_cookie_name and cookie.domain() == self.url().host():
             logging.trace("%s cookie removed:\n\n%s\n\n" % (self.authn_cookie_name, cookie_str))
+            if self.cookie_jar:
+                self.cookie_jar.clear(cookie_name, path=cookie.path(), domain=cookie.domain())
 
     def _cleanup(self):
         self._timer.stop()

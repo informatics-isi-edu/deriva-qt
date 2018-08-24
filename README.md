@@ -25,8 +25,6 @@ pip3 install --upgrade git+https://github.com/informatics-isi-edu/deriva-py.git
 pip3 install --upgrade git+https://github.com/informatics-isi-edu/deriva-qt.git
 ```
 
-### Windows 10 
-
 
 ## User Instructions 
 
