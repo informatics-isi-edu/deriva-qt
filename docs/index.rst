@@ -1,4 +1,4 @@
-deriva-qt
+Desktop Command-line Clients (deriva-qt)
 ====================
 
 .. toctree::
