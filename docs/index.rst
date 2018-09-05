@@ -1,5 +1,5 @@
 Desktop Command-line Clients (deriva-qt)
-====================
+=========================================
 
 .. toctree::
    :maxdepth: 4
