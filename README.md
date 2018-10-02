@@ -1,5 +1,7 @@
 # deriva-qt
+
 Graphical User Interface tools for DERIVA using PyQt
+
 * Authentication Agent
 * File Uploader
 
@@ -25,6 +27,7 @@ pip3 install --upgrade git+https://github.com/informatics-isi-edu/deriva-qt.git
 
 
 ## User Instructions 
+
 ### deriva-auth
 
 At the command-line, execute deriva-auth to set up credentials with deriva server
