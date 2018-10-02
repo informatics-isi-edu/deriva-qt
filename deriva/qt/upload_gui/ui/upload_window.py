@@ -90,7 +90,8 @@ class UploadWindow(QMainWindow):
         self.auth_window = \
             EmbeddedAuthWindow(config=self.uploader.server,
                                cookie_persistence=self.cookie_persistence,
-                               authentication_success_callback=self.onLoginSuccess)
+                               authentication_success_callback=self.onLoginSuccess,
+                               log_level=logging.getLogger().getEffectiveLevel())
         self.ui.actionLogin.setEnabled(True)
 
     def getSession(self):

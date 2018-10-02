@@ -1,4 +1,5 @@
 import sys
+import logging
 import traceback
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QStyleFactory, QMessageBox
@@ -33,7 +34,9 @@ def main():
         help="Enable cookie and local storage persistence for QtWebEngine.")
     args = cli.parse_cli()
     config = read_config(args.config_file, create_default=False) if args.config_file else None
-    authWindow = AuthWindow(config, args.credential_file, cookie_persistence=args.cookie_persistence)
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    authWindow = AuthWindow(config, args.credential_file,
+                            cookie_persistence=args.cookie_persistence, log_level=log_level)
     authWindow.show()
     ret = app.exec_()
     return ret

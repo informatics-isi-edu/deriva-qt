@@ -1,3 +1,4 @@
+import logging
 from PyQt5.QtCore import Qt, QEvent, QMetaObject
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QMainWindow, QStatusBar, QVBoxLayout
@@ -12,12 +13,14 @@ class EmbeddedAuthWindow(QMainWindow):
                  config,
                  credential_file=None,
                  cookie_persistence=False,
-                 authentication_success_callback=None):
+                 authentication_success_callback=None,
+                 log_level=logging.INFO):
         super(EmbeddedAuthWindow, self).__init__()
         success_callback = \
             self.successCallback if not authentication_success_callback else authentication_success_callback
-        self.ui = EmbeddedAuthWindowUI(self, config, credential_file, cookie_persistence, success_callback)
+        self.ui = EmbeddedAuthWindowUI(self, config, credential_file, cookie_persistence, success_callback, log_level)
         self.cookie_persistence = cookie_persistence
+        self.log_level = log_level
 
     def authenticated(self):
         return self.ui.authWidget.authenticated()
@@ -49,7 +52,7 @@ class EmbeddedAuthWindow(QMainWindow):
 
 class EmbeddedAuthWindowUI(object):
 
-    def __init__(self, MainWin, config, credential_file, cookie_persistence, success_callback):
+    def __init__(self, MainWin, config, credential_file, cookie_persistence, success_callback, log_level):
 
         # Main Window
         MainWin.setObjectName("EmbeddedAuthWindow")
@@ -63,7 +66,7 @@ class EmbeddedAuthWindowUI(object):
         self.verticalLayout.setContentsMargins(11, 11, 11, 11)
         self.verticalLayout.setSpacing(6)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.authWidget = AuthWidget(MainWin, config, credential_file, cookie_persistence)
+        self.authWidget = AuthWidget(MainWin, config, credential_file, cookie_persistence, log_level)
         self.authWidget.setSuccessCallback(success_callback)
         self.authWidget.setObjectName("authWidget")
         self.verticalLayout.addWidget(self.authWidget)

@@ -40,7 +40,7 @@ SUCCESS_HTML = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><titl
 
 class AuthWidget(QWebEngineView):
 
-    def __init__(self, parent, config=None, credential_file=None, cookie_persistence=False):
+    def __init__(self, parent, config=None, credential_file=None, cookie_persistence=False, log_level=logging.INFO):
         super(AuthWidget, self).__init__(parent)
 
         self.config = None
@@ -58,6 +58,7 @@ class AuthWidget(QWebEngineView):
         self._session = requests.session()
         self.token = None
 
+        logging.getLogger().setLevel(log_level)
         info = "%s v%s [Python %s, %s]" % (
             self.__class__.__name__, VERSION, platform.python_version(), platform.platform(aliased=True))
         logging.info("Initializing authorization provider: %s" % info)
@@ -65,7 +66,6 @@ class AuthWidget(QWebEngineView):
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._onTimerFired)
         self.configure(config, credential_file)
-        # logging.getLogger().setLevel(logging.TRACE)
 
     def configure(self, config, credential_file):
         self.config = config if config else read_config(self.config_file, create_default=True, default=DEFAULT_CONFIG)
@@ -222,7 +222,7 @@ class AuthWidget(QWebEngineView):
                 write_credential(self.credential_file, creds)
             self.token = cookie_val
             self._session.cookies.set(self.authn_cookie_name, cookie_val, domain=host, path='/')
-            if self.cookie_jar:
+            if self.cookie_jar is not None:
                 self.cookie_jar.set_cookie(
                     create_cookie(self.authn_cookie_name,
                                   cookie_val,
@@ -234,6 +234,7 @@ class AuthWidget(QWebEngineView):
                 for path in self.config.get("cookie_jars", DEFAULT_CONFIG["cookie_jars"]):
                     path_dir = os.path.dirname(path)
                     if os.path.isdir(os.path.dirname(path_dir)):
+                        logging.debug("Saving cookie jar to: %s" % path)
                         self.cookie_jar.save(path, ignore_discard=True, ignore_expires=True)
                     else:
                         logging.debug("Cookie jar save path [%s] does not exist." % path_dir)
@@ -258,3 +259,4 @@ class AuthWidget(QWebEngineView):
             self.authn_session_page.profile().cookieStore().cookieAdded.disconnect(self._onCookieAdded)
             self.authn_session_page.profile().cookieStore().cookieRemoved.disconnect(self._onCookieRemoved)
             del self.authn_session_page
+            self.authn_session_page = None

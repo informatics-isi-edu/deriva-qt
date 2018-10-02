@@ -21,9 +21,11 @@ class AuthWindow(QMainWindow):
                  config,
                  credential_file=None,
                  cookie_persistence=False,
-                 authentication_success_callback=None):
+                 authentication_success_callback=None,
+                 log_level=logging.INFO):
         super(AuthWindow, self).__init__()
         self.config = config
+        self.log_level = log_level
         self.credential_file = credential_file if credential_file else DEFAULT_CREDENTIAL_FILE
         self.cookie_persistence = cookie_persistence
         self.authentication_success_callback = \
@@ -92,7 +94,7 @@ class AuthWindow(QMainWindow):
         return servers
 
     def addAuthTab(self, config, credential_file, cookie_persistence, success_callback):
-        authWidget = AuthWidget(self, config, credential_file, cookie_persistence)
+        authWidget = AuthWidget(self, config, credential_file, cookie_persistence, self.log_level)
         authWidget.setSuccessCallback(success_callback)
         authWidget.setObjectName("authWidget")
         index = self.ui.tabWidget.addTab(authWidget, authWidget.auth_url.host())
