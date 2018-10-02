@@ -233,7 +233,7 @@ class AuthWidget(QWebEngineView):
                                   secure=True))
                 for path in self.config.get("cookie_jars", DEFAULT_CONFIG["cookie_jars"]):
                     path_dir = os.path.dirname(path)
-                    if os.path.isdir(os.path.dirname(path_dir)):
+                    if os.path.isdir(path_dir):
                         logging.debug("Saving cookie jar to: %s" % path)
                         self.cookie_jar.save(path, ignore_discard=True, ignore_expires=True)
                     else:
