@@ -22,6 +22,7 @@ setup(
     maintainer='USC Information Sciences Institute, Informatics Systems Research Division',
     maintainer_email='isrd-support@isi.edu',
     version=__version__,
+    python_requires='>3.5.2',
     packages=find_packages(),
     package_data={'deriva.qt': ['upload_gui/conf/config.json']},
     namespace_packages=["deriva"],
@@ -39,7 +40,7 @@ setup(
         'PyQt5'
     ],
     install_requires=[
-        'deriva>=0.6.2',
+        'deriva>=0.7.3',
     ],
     license='GNU GPL 3.0',
     classifiers=[
