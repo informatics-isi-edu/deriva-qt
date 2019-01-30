@@ -49,7 +49,7 @@ class DerivaUploadGUI(BaseCLI):
     @staticmethod
     def excepthook(etype, value, tb):
         traceback.print_tb(tb)
-        sys.stderr.write(format_exception(value))
+        print(format_exception(value), file=sys.stderr)
         msg = QMessageBox()
         msg.setText(str(value))
         msg.setStandardButtons(QMessageBox.Close)
@@ -60,7 +60,7 @@ class DerivaUploadGUI(BaseCLI):
 
     def main(self):
         sys.excepthook = DerivaUploadGUI.excepthook
-        sys.stderr.write("\n")
+        print("\n", file=sys.stderr)
         self.parser.add_argument(
             "--no-persistence", action="store_true",
             help="Disable cookie and local storage persistence for QtWebEngine.")

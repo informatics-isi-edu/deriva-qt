@@ -13,6 +13,7 @@ from PyQt5.QtNetwork import QNetworkCookie
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile
 from deriva.core import read_config, read_credential, write_credential, load_cookies_from_file, \
     format_exception, DEFAULT_SESSION_CONFIG, DEFAULT_CREDENTIAL, DEFAULT_COOKIE_JAR_FILE
+from deriva.core.utils.version_utils import get_installed_version
 from deriva.qt import __version__ as VERSION
 
 DEFAULT_CONFIG = {
@@ -60,7 +61,8 @@ class AuthWidget(QWebEngineView):
 
         logging.getLogger().setLevel(log_level)
         info = "%s v%s [Python %s, %s]" % (
-            self.__class__.__name__, VERSION, platform.python_version(), platform.platform(aliased=True))
+            self.__class__.__name__, get_installed_version(VERSION),
+            platform.python_version(), platform.platform(aliased=True))
         logging.info("Initializing authorization provider: %s" % info)
         self.cookie_persistence = cookie_persistence
         self._timer = QTimer(self)

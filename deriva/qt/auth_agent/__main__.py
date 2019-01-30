@@ -9,7 +9,7 @@ from deriva.qt import AuthWindow, __version__ as VERSION
 
 def excepthook(etype, value, tb):
     traceback.print_tb(tb)
-    sys.stderr.write(format_exception(value))
+    print(format_exception(value), file=sys.stderr)
     msg = QMessageBox()
     msg.setText(str(value))
     msg.setStandardButtons(QMessageBox.Close)
@@ -26,7 +26,7 @@ def main():
     QApplication.setStyle(QStyleFactory.create("Fusion"))
     app = QApplication(sys.argv)
     app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
-    sys.stderr.write("\n")
+    print("\n", file=sys.stderr)
     cli = BaseCLI("DERIVA Authentication Agent",
                   "For more information see: https://github.com/informatics-isi-edu/deriva-qt", VERSION)
     cli.parser.add_argument(

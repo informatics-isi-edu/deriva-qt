@@ -2,12 +2,12 @@ import logging
 import sys
 import re
 
-from pkg_resources import parse_version
 from PyQt5.QtCore import Qt, QEvent, QMetaObject, pyqtSlot, qVersion
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QMainWindow, QMessageBox, QStatusBar, QVBoxLayout, QSystemTrayIcon, QStyle, qApp, \
     QTabWidget, QAction, QToolBar, QSizePolicy, QHBoxLayout, QLabel, QComboBox, QSplitter
 from deriva.core import read_config, write_config, DEFAULT_CREDENTIAL_FILE
+from deriva.core.utils.version_utils import version
 from deriva.qt import QPlainTextEditLogger, __version__ as VERSION
 from deriva.qt.auth_agent.ui.auth_widget import AuthWidget, DEFAULT_CONFIG, DEFAULT_CONFIG_FILE
 from deriva.qt.auth_agent.resources import resources
@@ -278,7 +278,7 @@ class AuthWindow(QMainWindow):
                 title = self.window_title
                 msg = 'Running in the background.'
                 qtVersion = qVersion()
-                if parse_version(qtVersion) > parse_version("5.9.0"):
+                if version.Version(qtVersion) > version.Version("5.9.0"):
                     self.systemTrayIcon.showMessage(title, msg, self.window_icon)
                 else:
                     self.systemTrayIcon.showMessage(title, msg)
@@ -293,8 +293,8 @@ class AuthWindow(QMainWindow):
         msg.setIcon(QMessageBox.Warning)
         msg.setWindowTitle("Confirm Action")
         msg.setText("Are you sure you wish to exit?")
-        msg.setDetailedText("If you close the application, your credentials will not be automatically refreshed "
-                            "and will be invalidated once the application has exited.")
+        msg.setInformativeText(
+            "If you close the application, your credentials will be invalidated once the application has exited.")
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         ret = msg.exec_()
         if ret == QMessageBox.No:
