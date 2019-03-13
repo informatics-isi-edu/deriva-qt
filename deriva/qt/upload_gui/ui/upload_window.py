@@ -73,6 +73,7 @@ class UploadWindow(QMainWindow):
                 return
             else:
                 self.uploader.setServer(server)
+        self.uploader.set_dcctx_cid("DerivaUploadGUI")
 
         self.setWindowTitle("%s (%s)" % (self.ui.title, self.uploader.server["host"]))
 

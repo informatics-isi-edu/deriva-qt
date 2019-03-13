@@ -15,9 +15,14 @@ __version__ = re.search(
     io.open('deriva/qt/__init__.py', encoding='utf_8_sig').read()
     ).group(1)
 
+with io.open('README.md') as readme_file:
+    readme = readme_file.read()
+
 setup(
     name="deriva.qt",
     description="Graphical User Interface tools for DERIVA",
+    long_description=readme,
+    long_description_content_type='text/markdown',
     url='https://github.com/informatics-isi-edu/deriva-qt',
     maintainer='USC Information Sciences Institute, Informatics Systems Research Division',
     maintainer_email='isrd-support@isi.edu',
@@ -33,14 +38,13 @@ setup(
         ]
     },
     requires=[
-        'os',
-        'sys',
-        'logging',
-        'requests',
-        'PyQt5'
+        'deriva',
+        'PyQt5',
+        'PyQt5-sip',
+        'PyQtWebEngine'
     ],
     install_requires=[
-        'deriva>=0.7.4',
+        'deriva>=0.7.8',
     ],
     license='GNU GPL 3.0',
     classifiers=[
