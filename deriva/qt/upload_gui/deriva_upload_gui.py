@@ -1,5 +1,6 @@
 import sys
 import traceback
+from contextlib import redirect_stdout, redirect_stderr
 
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
@@ -60,7 +61,6 @@ class DerivaUploadGUI(BaseCLI):
 
     def main(self):
         sys.excepthook = DerivaUploadGUI.excepthook
-        print("\n", file=sys.stderr)
         self.parser.add_argument(
             "--no-persistence", action="store_true",
             help="Disable cookie and local storage persistence for QtWebEngine.")

@@ -30,7 +30,6 @@ setup(
     python_requires='>3.5.2',
     packages=find_packages(),
     package_data={'deriva.qt': ['upload_gui/conf/config.json']},
-    namespace_packages=["deriva"],
     entry_points={
         'console_scripts': [
             'deriva-auth = deriva.qt.auth_agent.__main__:main',
@@ -43,7 +42,7 @@ setup(
         'PyQtWebEngine'
     ],
     install_requires=[
-        'deriva>=0.7.8',
+        'deriva>=0.8.0',
     ],
     license='GNU GPL 3.0',
     classifiers=[

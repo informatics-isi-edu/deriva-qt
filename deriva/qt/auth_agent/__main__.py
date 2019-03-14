@@ -21,23 +21,21 @@ def excepthook(etype, value, tb):
 
 def main():
     sys.excepthook = excepthook
-
-    QApplication.setDesktopSettingsAware(False)
-    QApplication.setStyle(QStyleFactory.create("Fusion"))
-    app = QApplication(sys.argv)
-    app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
-    print("\n", file=sys.stderr)
     cli = BaseCLI("DERIVA Authentication Agent",
                   "For more information see: https://github.com/informatics-isi-edu/deriva-qt", VERSION)
     cli.parser.add_argument(
         "--cookie-persistence", action="store_true",
         help="Enable cookie and local storage persistence for QtWebEngine.")
     args = cli.parse_cli()
+    QApplication.setDesktopSettingsAware(False)
+    QApplication.setStyle(QStyleFactory.create("Fusion"))
+    app = QApplication(sys.argv)
+    app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
     config = read_config(args.config_file, create_default=False) if args.config_file else None
     log_level = logging.DEBUG if args.debug else logging.INFO
-    authWindow = AuthWindow(config, args.credential_file,
-                            cookie_persistence=args.cookie_persistence, log_level=log_level)
-    authWindow.show()
+    auth_window = AuthWindow(config, args.credential_file,
+                             cookie_persistence=args.cookie_persistence, log_level=log_level)
+    auth_window.show()
     ret = app.exec_()
     return ret
 
