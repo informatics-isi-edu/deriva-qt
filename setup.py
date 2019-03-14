@@ -40,7 +40,6 @@ setup(
     requires=[
         'deriva',
         'PyQt5',
-        'PyQt5-sip',
         'PyQtWebEngine'
     ],
     install_requires=[
