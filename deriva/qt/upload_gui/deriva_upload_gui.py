@@ -1,6 +1,5 @@
 import sys
 import traceback
-from contextlib import redirect_stdout, redirect_stderr
 
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
