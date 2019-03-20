@@ -42,7 +42,8 @@ setup(
         'PyQtWebEngine'
     ],
     install_requires=[
-        'deriva>=0.8.0',
+        'deriva>=0.8.1',
+        'PyQtWebEngine'
     ],
     license='GNU GPL 3.0',
     classifiers=[
