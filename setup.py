@@ -38,12 +38,10 @@ setup(
     },
     requires=[
         'deriva',
-        'PyQt5',
-        'PyQtWebEngine'
+        'PyQt5'
     ],
     install_requires=[
-        'deriva>=0.8.1',
-        'PyQtWebEngine'
+        'deriva>=0.8.1'
     ],
     license='GNU GPL 3.0',
     classifiers=[
