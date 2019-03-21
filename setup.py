@@ -15,15 +15,19 @@ __version__ = re.search(
     io.open('deriva/qt/__init__.py', encoding='utf_8_sig').read()
     ).group(1)
 
-with io.open('README.md') as readme_file:
-    readme = readme_file.read()
 
+def get_readme_contents():
+    with io.open('README.md') as readme_file:
+        return readme_file.read()
+
+
+url = 'https://github.com/informatics-isi-edu/deriva-qt'
 setup(
-    name="deriva.qt",
-    description="Graphical User Interface tools for DERIVA",
-    long_description=readme,
+    name='deriva.qt',
+    description='Graphical User Interface tools for DERIVA built on PyQt5',
+    long_description="For further information, visit the project [homepage](%s)." % url,
     long_description_content_type='text/markdown',
-    url='https://github.com/informatics-isi-edu/deriva-qt',
+    url=url,
     maintainer='USC Information Sciences Institute, Informatics Systems Research Division',
     maintainer_email='isrd-support@isi.edu',
     version=__version__,
@@ -43,17 +47,22 @@ setup(
     install_requires=[
         'deriva>=0.8.1'
     ],
+    extras_require={
+        'PyQt5': ["PyQt5==5.11.3"],
+        'PyQtWebEngine': ["PyQtWebEngine>=5.12.1"]
+    },
     license='GNU GPL 3.0',
     classifiers=[
         'Intended Audience :: Science/Research',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License',
-        "Operating System :: POSIX",
-        "Operating System :: MacOS :: MacOS X",
-        "Operating System :: Microsoft :: Windows",
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Operating System :: POSIX',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7'
     ]
 )
 
