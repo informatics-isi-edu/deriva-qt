@@ -14,11 +14,15 @@ class EmbeddedAuthWindow(QMainWindow):
                  credential_file=None,
                  cookie_persistence=False,
                  authentication_success_callback=None,
+                 authentication_failure_callback=None,
                  log_level=logging.INFO):
         super(EmbeddedAuthWindow, self).__init__()
         success_callback = \
             self.successCallback if not authentication_success_callback else authentication_success_callback
-        self.ui = EmbeddedAuthWindowUI(self, config, credential_file, cookie_persistence, success_callback, log_level)
+        failure_callback = \
+            self.failure_callback if not authentication_failure_callback else authentication_failure_callback
+        self.ui = EmbeddedAuthWindowUI(
+            self, config, credential_file, cookie_persistence, success_callback, failure_callback, log_level)
         self.cookie_persistence = cookie_persistence
         self.log_level = log_level
 
@@ -52,7 +56,14 @@ class EmbeddedAuthWindow(QMainWindow):
 
 class EmbeddedAuthWindowUI(object):
 
-    def __init__(self, MainWin, config, credential_file, cookie_persistence, success_callback, log_level):
+    def __init__(self,
+                 MainWin,
+                 config,
+                 credential_file,
+                 cookie_persistence,
+                 success_callback,
+                 failure_callback,
+                 log_level):
 
         # Main Window
         MainWin.setObjectName("EmbeddedAuthWindow")
@@ -68,6 +79,7 @@ class EmbeddedAuthWindowUI(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.authWidget = AuthWidget(MainWin, config, credential_file, cookie_persistence, log_level)
         self.authWidget.setSuccessCallback(success_callback)
+        self.authWidget.setFailureCallback(failure_callback)
         self.authWidget.setObjectName("authWidget")
         self.verticalLayout.addWidget(self.authWidget)
 

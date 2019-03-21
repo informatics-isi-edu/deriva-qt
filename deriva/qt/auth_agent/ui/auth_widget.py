@@ -56,6 +56,7 @@ class AuthWidget(QWebEngineView):
         self.authn_cookie_name = None
         self.authn_expires = time.time()
         self._success_callback = None
+        self._failure_callback = None
         self._session = requests.session()
         self.token = None
 
@@ -137,6 +138,9 @@ class AuthWidget(QWebEngineView):
     def setSuccessCallback(self, callback=None):
         self._success_callback = callback
 
+    def setFailureCallback(self, callback=None):
+        self._failure_callback = callback
+
     def setStatus(self, message):
         if self.window().statusBar is not None:
             self.window().statusBar().showMessage(message)
@@ -144,6 +148,10 @@ class AuthWidget(QWebEngineView):
     def _execSuccessCallback(self):
         if self._success_callback:
             self._success_callback(host=self.auth_url.host(), credential=self.credential)
+
+    def _execFailureCallback(self, message):
+        if self._failure_callback:
+            self._failure_callback(host=self.auth_url.host(), message=message)
 
     def _onTimerFired(self):
         if not self.authenticated():
@@ -164,7 +172,10 @@ class AuthWidget(QWebEngineView):
     def _onSessionContent(self, content):
         try:
             self.setHtml(SUCCESS_HTML)
-            self.authn_session = json.loads(content)
+            try:
+                self.authn_session = json.loads(content)
+            except json.JSONDecodeError:
+                raise RuntimeError("Unable to parse response from server: %s" % content)
             seconds_remaining = self.authn_session['seconds_remaining']
             if not self._timer.isActive():
                 interval = seconds_remaining // 2
@@ -176,8 +187,10 @@ class AuthWidget(QWebEngineView):
             qApp.restoreOverrideCursor()
             QTimer.singleShot(100, self._execSuccessCallback)
         except (ValueError, Exception) as e:
-            logging.error(format_exception(e))
+            error = format_exception(e)
+            logging.error(error)
             self.setHtml(ERROR_HTML % content)
+            self._execFailureCallback(error)
 
     def _onPreAuthContent(self, content):
         try:

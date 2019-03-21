@@ -92,6 +92,7 @@ class UploadWindow(QMainWindow):
             EmbeddedAuthWindow(config=self.uploader.server,
                                cookie_persistence=self.cookie_persistence,
                                authentication_success_callback=self.onLoginSuccess,
+                               authentication_failure_callback=self.onLoginFailure,
                                log_level=logging.getLogger().getEffectiveLevel())
         self.ui.actionLogin.setEnabled(True)
 
@@ -106,6 +107,19 @@ class UploadWindow(QMainWindow):
         self.auth_window.hide()
         self.uploader.setCredentials(kwargs["credential"])
         self.getSession()
+
+    def onLoginFailure(self, **kwargs):
+        host = kwargs.get("host")
+        message = kwargs.get("message", "Unknown Error")
+        if host:
+            self.statusBar().showMessage(message)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Error authenticating to host: %s" % host)
+            msg.setText(message)
+            msg.setStandardButtons(QMessageBox.Close)
+            msg.exec_()
+        self.auth_window.hide()
 
     def enableControls(self):
         self.ui.actionUpload.setEnabled(self.canUpload())

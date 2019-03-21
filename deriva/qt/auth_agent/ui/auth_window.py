@@ -22,6 +22,7 @@ class AuthWindow(QMainWindow):
                  credential_file=None,
                  cookie_persistence=False,
                  authentication_success_callback=None,
+                 authentication_failure_callback=None,
                  log_level=logging.INFO):
         super(AuthWindow, self).__init__()
         self.config = config
@@ -30,7 +31,8 @@ class AuthWindow(QMainWindow):
         self.cookie_persistence = cookie_persistence
         self.authentication_success_callback = \
             self.successCallback if not authentication_success_callback else authentication_success_callback
-
+        self.authentication_failure_callback = \
+            self.failureCallback if not authentication_failure_callback else authentication_failure_callback
         self.window_icon = QIcon(":/images/keys.png")
         qApp.setWindowIcon(QIcon(self.window_icon))
         self.systemTrayIcon = QSystemTrayIcon(self)
@@ -69,6 +71,25 @@ class AuthWindow(QMainWindow):
         self.ui.actionShowToken.setEnabled(True)
         self.updateSystrayTooltip()
 
+    def failureCallback(self, **kwargs):
+        host = kwargs.get("host")
+        message = kwargs.get("message", "Unknown Error")
+        if host:
+            self.statusBar().showMessage(message)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Error authenticating to host: %s" % host)
+            msg.setText(message)
+            msg.setStandardButtons(QMessageBox.Close)
+            msg.exec_()
+
+        i = self.ui.tabWidget.currentIndex()
+        widget = self.ui.tabWidget.widget(i)
+        if isinstance(widget, AuthWidget):
+            widget.logout()
+            del widget
+        self.ui.tabWidget.removeTab(i)
+
     def populateServerList(self):
         for server in self.config.get("servers", []):
             if not server:
@@ -93,9 +114,10 @@ class AuthWindow(QMainWindow):
                     servers.append(self.ui.tabWidget.tabText(i))
         return servers
 
-    def addAuthTab(self, config, credential_file, cookie_persistence, success_callback):
+    def addAuthTab(self, config, credential_file, cookie_persistence, success_callback, failure_callback):
         authWidget = AuthWidget(self, config, credential_file, cookie_persistence, self.log_level)
         authWidget.setSuccessCallback(success_callback)
+        authWidget.setFailureCallback(failure_callback)
         authWidget.setObjectName("authWidget")
         index = self.ui.tabWidget.addTab(authWidget, authWidget.auth_url.host())
         return index
@@ -166,7 +188,8 @@ class AuthWindow(QMainWindow):
         index = self.addAuthTab(server,
                                 self.credential_file,
                                 self.cookie_persistence,
-                                self.authentication_success_callback)
+                                self.authentication_success_callback,
+                                self.authentication_failure_callback)
         self.ui.tabWidget.setTabEnabled(index, False)
         widget = self.ui.tabWidget.widget(index)
         if isinstance(widget, AuthWidget):
@@ -230,7 +253,8 @@ class AuthWindow(QMainWindow):
         index = self.addAuthTab(server,
                                 self.credential_file,
                                 self.cookie_persistence,
-                                self.authentication_success_callback)
+                                self.authentication_success_callback,
+                                self.authentication_failure_callback)
         self.ui.tabWidget.setTabEnabled(index, False)
         widget = self.ui.tabWidget.widget(index)
         if isinstance(widget, AuthWidget):
