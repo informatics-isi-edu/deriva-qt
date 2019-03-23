@@ -23,7 +23,7 @@ def get_readme_contents():
 
 url = 'https://github.com/informatics-isi-edu/deriva-qt'
 setup(
-    name='deriva.qt',
+    name='deriva-qt',
     description='Graphical User Interface tools for DERIVA built on PyQt5',
     long_description="For further information, visit the project [homepage](%s)." % url,
     long_description_content_type='text/markdown',
