@@ -1,7 +1,7 @@
 import logging
 from PyQt5.QtCore import Qt, QEvent, QMetaObject
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QMainWindow, QStatusBar, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QMainWindow, QStatusBar, QVBoxLayout, QMessageBox
 from deriva.qt import __version__ as VERSION
 from deriva.qt.auth_agent.ui.auth_widget import AuthWidget
 from deriva.qt.auth_agent.resources import resources
@@ -20,9 +20,14 @@ class EmbeddedAuthWindow(QMainWindow):
         success_callback = \
             self.successCallback if not authentication_success_callback else authentication_success_callback
         failure_callback = \
-            self.failure_callback if not authentication_failure_callback else authentication_failure_callback
-        self.ui = EmbeddedAuthWindowUI(
-            self, config, credential_file, cookie_persistence, success_callback, failure_callback, log_level)
+            self.failureCallback if not authentication_failure_callback else authentication_failure_callback
+        self.ui = EmbeddedAuthWindowUI(self,
+                                       config,
+                                       credential_file,
+                                       cookie_persistence,
+                                       success_callback,
+                                       failure_callback,
+                                       log_level)
         self.cookie_persistence = cookie_persistence
         self.log_level = log_level
 
@@ -39,6 +44,19 @@ class EmbeddedAuthWindow(QMainWindow):
         host = kwargs.get("host")
         if host:
             self.statusBar().showMessage("Authenticated: %s" % host)
+        self.hide()
+
+    def failureCallback(self, **kwargs):
+        host = kwargs.get("host")
+        message = kwargs.get("message", "Unknown Error")
+        if host:
+            self.statusBar().showMessage(message)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Error authenticating to host: %s" % host)
+            msg.setText(message)
+            msg.setStandardButtons(QMessageBox.Close)
+            msg.exec_()
         self.hide()
 
     def changeEvent(self, event):
