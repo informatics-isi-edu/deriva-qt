@@ -39,7 +39,7 @@ setup(
     version=__version__,
     python_requires='>3.5.2',
     packages=find_packages(),
-    package_data={'deriva.qt': ['upload_gui/conf/config.json']},
+    package_data={'deriva.qt': ['upload_gui/conf/config.json', '*/resources/images/*']},
     entry_points={
         'console_scripts': [
             'deriva-auth = deriva.qt.auth_agent.__main__:main',
