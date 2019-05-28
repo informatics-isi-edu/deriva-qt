@@ -1,9 +1,9 @@
-Desktop Command-line Clients (deriva-qt)
+Desktop GUI Applications (deriva-qt)
 =========================================
 
 .. toctree::
    :maxdepth: 4
    :caption: User Documents
 
-   install.md
+   auth.md
    uploading.md

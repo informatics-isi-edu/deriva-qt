@@ -22,15 +22,10 @@ See the source installation instructions [here](https://github.com/informatics-i
 
 ## User Instructions 
 
-### deriva-auth
-
-At the command-line, execute deriva-auth to set up credentials with deriva server.
-
-```
-deriva-auth
-```
+TBD
 
 
+## Additional information
 Links:
 * [Build status](http://buildbot.isrd.isi.edu/)
 * [Downloads](http://buildbot.isrd.isi.edu/~buildbot/deriva-client-bundle/)
