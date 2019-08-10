@@ -45,9 +45,7 @@ class UploadWindow(QMainWindow):
         self.cookie_persistence = cookie_persistence
 
         self.show()
-        qApp.setOverrideCursor(Qt.WaitCursor)
         self.configure(uploader, hostname)
-        qApp.restoreOverrideCursor()
 
     def configure(self, uploader, hostname):
 
