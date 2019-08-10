@@ -6,7 +6,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QStyleFactory, QMessageBox
 from deriva.core import format_exception, BaseCLI
 from deriva.transfer import DerivaUpload
-from deriva.qt import UploadWindow
+from deriva.qt import UploadWindow, __version__
 
 
 class DerivaUploadGUI(BaseCLI):
@@ -71,7 +71,10 @@ class DerivaUploadGUI(BaseCLI):
                               config_file=args.config_file,
                               credential_file=args.credential_file,
                               hostname=args.host,
-                              window_title="%s %s" % (self.parser.description, self.uploader.getVersion()),
+                              window_title="%s %s [%s: %s]" % (self.parser.description,
+                                                               __version__,
+                                                               self.uploader.__name__,
+                                                               self.uploader.getVersion()),
                               window_icon=self.window_icon,
                               cookie_persistence=self.cookie_persistence)
         return ret

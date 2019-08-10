@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import qApp, QMainWindow, QWidget, QAction, QSizePolicy, QP
     QToolBar, QStatusBar, QVBoxLayout, QHBoxLayout, QTableWidgetItem, QAbstractItemView, QLineEdit, QFileDialog, \
     QMessageBox
 from deriva.core import write_config, stob
-from deriva.qt import EmbeddedAuthWindow, QPlainTextEditLogger, TableWidget, Request
+from deriva.qt import EmbeddedAuthWindow, QPlainTextEditLogger, TableWidget, Request, __version__
 from deriva.qt.upload_gui.impl.upload_tasks import *
 from deriva.qt.upload_gui.ui.options_window import OptionsDialog
 from deriva.qt.upload_gui.resources import resources
@@ -37,7 +37,10 @@ class UploadWindow(QMainWindow):
         qApp.aboutToQuit.connect(self.quitEvent)
 
         self.ui = UploadWindowUI(self)
-        self.ui.title = window_title if window_title else "Deriva Upload Utility %s" % uploader.getVersion()
+        self.ui.title = window_title if window_title else "Deriva Upload Utility %s (%s: %s)" % \
+                                                          (__version__,
+                                                           uploader.__name__,
+                                                           uploader.getVersion())
         self.setWindowTitle(self.ui.title)
 
         self.config_file = config_file
@@ -500,7 +503,7 @@ class UploadWindowUI(object):
         # Main Window
         MainWin.setObjectName("UploadWindow")
         MainWin.setWindowTitle(MainWin.tr(self.title))
-        MainWin.resize(800, 600)
+        MainWin.resize(1024, 768)
         self.centralWidget = QWidget(MainWin)
         self.centralWidget.setObjectName("centralWidget")
         MainWin.setCentralWidget(self.centralWidget)
