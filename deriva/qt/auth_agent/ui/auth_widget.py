@@ -131,6 +131,12 @@ class AuthWidget(QWebEngineView):
             if delete_cookies and self.cookie_persistence:
                 self.authn_session_page.profile().cookieStore().deleteAllCookies()
             self._session.delete(self.auth_url.toString() + "/authn/session")
+            if self.credential_file:
+                creds = read_credential(self.credential_file, create_default=True)
+                host = self.auth_url.host()
+                if creds.get(host):
+                    del creds[host]
+                write_credential(self.credential_file, creds)
         except Exception as e:
             logging.warning("Logout error: %s" % format_exception(e))
         self._cleanup()
