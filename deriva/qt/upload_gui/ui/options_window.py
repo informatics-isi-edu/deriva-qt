@@ -313,11 +313,12 @@ class ServerDialog(QDialog):
 
         self.cookie_persistence = QCheckBox("&Stay logged in", parent)
         allow_session_caching = True
-        client_settings = parent.uploader.config.get("client_settings")
-        if client_settings:
-            allow_session_caching = stob(client_settings.get("allow_session_caching", True))
-            if not allow_session_caching:
-                server["cookie_persistence"] = False
+        if parent.uploader.config:
+            client_settings = parent.uploader.config.get("client_settings")
+            if client_settings:
+                allow_session_caching = stob(client_settings.get("allow_session_caching", True))
+                if not allow_session_caching:
+                    server["cookie_persistence"] = False
         self.cookie_persistence.setChecked(stob(server.get("cookie_persistence", False)))
         self.cookie_persistence.setEnabled(self.serversConfigurable and allow_session_caching)
         self.checkboxLayout.addWidget(self.cookie_persistence)
