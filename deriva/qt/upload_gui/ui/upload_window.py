@@ -88,9 +88,11 @@ class UploadWindow(QMainWindow):
             if self.auth_window.authenticated():
                 self.on_actionLogout_triggered()
             self.auth_window.destroy()
+            del self.auth_window
 
         self.auth_window = \
-            EmbeddedAuthWindow(config=self.uploader.server,
+            EmbeddedAuthWindow(self,
+                               config=self.uploader.server,
                                cookie_persistence=
                                self.uploader.server.get("cookie_persistence", self.cookie_persistence),
                                authentication_success_callback=self.onLoginSuccess,

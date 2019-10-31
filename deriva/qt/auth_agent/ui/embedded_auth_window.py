@@ -10,13 +10,14 @@ from deriva.qt.auth_agent.resources import resources
 class EmbeddedAuthWindow(QMainWindow):
 
     def __init__(self,
+                 parent,
                  config,
                  credential_file=None,
                  cookie_persistence=False,
                  authentication_success_callback=None,
                  authentication_failure_callback=None,
                  log_level=logging.INFO):
-        super(EmbeddedAuthWindow, self).__init__()
+        super(EmbeddedAuthWindow, self).__init__(parent)
         success_callback = \
             self.successCallback if not authentication_success_callback else authentication_success_callback
         failure_callback = \

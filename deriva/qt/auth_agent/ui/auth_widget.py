@@ -17,11 +17,11 @@ from deriva.core.utils.version_utils import get_installed_version
 from deriva.qt import __version__ as VERSION
 
 DEFAULT_CONFIG = {
-  "servers": [],
-  "cookie_jars": [
-    DEFAULT_COOKIE_JAR_FILE,
-    os.path.join(os.path.expanduser(os.path.normpath("~/.bdbag")), "deriva-cookies.txt")
-  ]
+    "servers": [],
+    "cookie_jars": [
+        DEFAULT_COOKIE_JAR_FILE,
+        os.path.join(os.path.expanduser(os.path.normpath("~/.bdbag")), "deriva-cookies.txt")
+    ]
 }
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser(os.path.normpath("~/.deriva")), "auth-agent-config.json")
@@ -44,6 +44,7 @@ class AuthWidget(QWebEngineView):
     def __init__(self, parent, config=None, credential_file=None, cookie_persistence=False, log_level=logging.INFO):
         super(AuthWidget, self).__init__(parent)
 
+        self.parent = parent
         self.config = None
         self.config_file = DEFAULT_CONFIG_FILE
         self.credential = DEFAULT_CREDENTIAL
@@ -114,7 +115,8 @@ class AuthWidget(QWebEngineView):
         self._cleanup()
         self.setHtml(DEFAULT_HTML)
         self.authn_session_page = \
-            QWebEnginePage(QWebEngineProfile(self), self) if not self.cookie_persistence else QWebEnginePage(self)
+            QWebEnginePage(QWebEngineProfile(self), self.parent) \
+            if not self.cookie_persistence else QWebEnginePage(self.parent)
         self.authn_session_page.profile().setPersistentCookiesPolicy(
             QWebEngineProfile.ForcePersistentCookies if self.cookie_persistence else
             QWebEngineProfile.NoPersistentCookies)
@@ -124,6 +126,7 @@ class AuthWidget(QWebEngineView):
         self.authn_session_page.loadFinished.connect(self._onLoadFinished)
 
         self.authn_session_page.setUrl(QUrl(self.auth_url.toString() + "/authn/preauth"))
+        self.setPage(self.authn_session_page)
 
     def logout(self, delete_cookies=False):
         if not (self.auth_url and (self.auth_url.host() and self.auth_url.scheme())):
@@ -218,18 +221,15 @@ class AuthWidget(QWebEngineView):
     def _onLoadFinished(self, result):
         qApp.restoreOverrideCursor()
         if not result:
-            logging.debug("Page load error: %s" % self.authn_session_page.url().toDisplayString())
-            self.setPage(self.authn_session_page)
+            logging.debug("Page load error: %s" % self.page.url().toDisplayString())
             return
-        if self.authn_session_page.url().path() == "/authn/preauth":
-            self.authn_session_page.toPlainText(self._onPreAuthContent)
-        elif self.authn_session_page.url().path() == "/authn/session":
-            self.authn_session_page.toPlainText(self._onSessionContent)
-        else:
-            self.setPage(self.authn_session_page)
+        if self.page().url().path() == "/authn/preauth":
+            self.page().toPlainText(self._onPreAuthContent)
+        elif self.page().url().path() == "/authn/session":
+            self.page().toPlainText(self._onSessionContent)
 
     def _onLoadProgress(self, progress):
-        self.setStatus("Loading page: %s [%d%%]" % (self.url().host(), progress))
+        self.setStatus("Loading page: %s [%d%%]" % (self.page().url().host(), progress))
 
     def _onCookieAdded(self, cookie):
         cookie_str = str(cookie.toRawForm(QNetworkCookie.NameAndValueOnly), encoding='utf-8')
@@ -282,5 +282,6 @@ class AuthWidget(QWebEngineView):
             self.authn_session_page.loadFinished.disconnect(self._onLoadFinished)
             self.authn_session_page.profile().cookieStore().cookieAdded.disconnect(self._onCookieAdded)
             self.authn_session_page.profile().cookieStore().cookieRemoved.disconnect(self._onCookieRemoved)
+            self.authn_session_page.deleteLater()
             del self.authn_session_page
             self.authn_session_page = None
