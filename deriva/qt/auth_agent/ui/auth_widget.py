@@ -115,10 +115,14 @@ class AuthWidget(QWebEngineView):
         self.setHtml(DEFAULT_HTML)
         self.authn_session_page = \
             QWebEnginePage(QWebEngineProfile(self), self) if not self.cookie_persistence else QWebEnginePage(self)
-        self.authn_session_page.loadProgress.connect(self._onLoadProgress)
-        self.authn_session_page.loadFinished.connect(self._onLoadFinished)
+        self.authn_session_page.profile().setPersistentCookiesPolicy(
+            QWebEngineProfile.ForcePersistentCookies if self.cookie_persistence else
+            QWebEngineProfile.NoPersistentCookies)
         self.authn_session_page.profile().cookieStore().cookieAdded.connect(self._onCookieAdded)
         self.authn_session_page.profile().cookieStore().cookieRemoved.connect(self._onCookieRemoved)
+        self.authn_session_page.loadProgress.connect(self._onLoadProgress)
+        self.authn_session_page.loadFinished.connect(self._onLoadFinished)
+
         self.authn_session_page.setUrl(QUrl(self.auth_url.toString() + "/authn/preauth"))
 
     def logout(self, delete_cookies=False):
@@ -259,7 +263,6 @@ class AuthWidget(QWebEngineView):
                         self.cookie_jar.save(path, ignore_discard=True, ignore_expires=True)
                     else:
                         logging.debug("Cookie jar save path [%s] does not exist." % path_dir)
-            self.authn_session_page.setUrl(QUrl(self.auth_url.toString() + "/authn/session"))
 
     def _onCookieRemoved(self, cookie):
         cookie_str = str(cookie.toRawForm(QNetworkCookie.NameAndValueOnly), encoding='utf-8')

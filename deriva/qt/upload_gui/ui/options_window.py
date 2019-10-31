@@ -310,6 +310,17 @@ class ServerDialog(QDialog):
         self.confirm_updates.setChecked(stob(server.get("confirm_updates", False)))
         self.confirm_updates.setEnabled(self.serversConfigurable)
         self.checkboxLayout.addWidget(self.confirm_updates)
+
+        self.cookie_persistence = QCheckBox("&Stay logged in", parent)
+        allow_session_caching = True
+        client_settings = parent.uploader.config.get("client_settings")
+        if client_settings:
+            allow_session_caching = stob(client_settings.get("allow_session_caching", True))
+            if not allow_session_caching:
+                server["cookie_persistence"] = False
+        self.cookie_persistence.setChecked(stob(server.get("cookie_persistence", False)))
+        self.cookie_persistence.setEnabled(self.serversConfigurable and allow_session_caching)
+        self.checkboxLayout.addWidget(self.cookie_persistence)
         self.serverOptionsGroupBox.setLayout(self.checkboxLayout)
         layout.addWidget(self.serverOptionsGroupBox)
 
@@ -334,6 +345,7 @@ class ServerDialog(QDialog):
 
         self.server["default"] = self.defaultServer.isChecked()
         self.server["confirm_updates"] = self.confirm_updates.isChecked()
+        self.server["cookie_persistence"] = self.cookie_persistence.isChecked()
 
         desc = self.descriptionTextBox.text()
         self.server["desc"] = desc if desc else ""

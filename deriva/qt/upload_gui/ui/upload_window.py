@@ -87,11 +87,12 @@ class UploadWindow(QMainWindow):
         if self.auth_window:
             if self.auth_window.authenticated():
                 self.on_actionLogout_triggered()
-            del self.auth_window
+            self.auth_window.destroy()
 
         self.auth_window = \
             EmbeddedAuthWindow(config=self.uploader.server,
-                               cookie_persistence=self.cookie_persistence,
+                               cookie_persistence=
+                               self.uploader.server.get("cookie_persistence", self.cookie_persistence),
                                authentication_success_callback=self.onLoginSuccess,
                                log_level=logging.getLogger().getEffectiveLevel())
         self.ui.actionLogin.setEnabled(True)
@@ -148,6 +149,24 @@ class UploadWindow(QMainWindow):
             self.on_actionOptions_triggered()
         else:
             return False
+
+    def checkAllowSessionCaching(self):
+        client_settings = self.uploader.config.get("client_settings")
+        if not client_settings:
+            return
+        allow_session_caching = stob(client_settings.get("allow_session_caching", True))
+        cookie_persistence = self.uploader.server.get("cookie_persistence", False)
+        if cookie_persistence != allow_session_caching:
+            if not allow_session_caching:
+                self.uploader.server["cookie_persistence"] = False
+                servers = list()
+                for server in self.uploader.getServers():
+                    if server.get("host", "") != self.uploader.server.get("host"):
+                        servers.append(server)
+                servers.append(self.uploader.server)
+                setServers = getattr(self.uploader, "setServers", None)
+                if callable(setServers):
+                    setServers(servers)
 
     def onServerChanged(self, server):
         if server is None or server == self.uploader.server:
@@ -248,6 +267,8 @@ class UploadWindow(QMainWindow):
             self.ui.actionOptions.setEnabled(True)
             self.updateConfirmation()
             return False
+
+        self.checkAllowSessionCaching()
         self.resetUI("Ready...")
         return True
 
@@ -433,7 +454,7 @@ class UploadWindow(QMainWindow):
     @pyqtSlot()
     def on_actionLogout_triggered(self):
         self.setWindowTitle("%s (%s)" % (self.ui.title, self.uploader.server["host"]))
-        self.auth_window.logout(delete_cookies=True)
+        self.auth_window.logout()
         self.identity = None
         self.ui.actionUpload.setEnabled(False)
         self.ui.actionRescan.setEnabled(False)
