@@ -37,10 +37,7 @@ class UploadWindow(QMainWindow):
         qApp.aboutToQuit.connect(self.quitEvent)
 
         self.ui = UploadWindowUI(self)
-        self.ui.title = window_title if window_title else "Deriva Upload Utility %s (%s: %s)" % \
-                                                          (__version__,
-                                                           uploader.__name__,
-                                                           uploader.getVersion())
+        self.ui.title = window_title if window_title else "Deriva Upload Utility %s" % __version__
         self.setWindowTitle(self.ui.title)
 
         self.config_file = config_file
@@ -51,7 +48,6 @@ class UploadWindow(QMainWindow):
         self.configure(uploader, hostname)
 
     def configure(self, uploader, hostname):
-
         # if a hostname has been provided, it overrides whatever default host a given uploader is configured for
         server = None
         if hostname:
@@ -68,13 +64,12 @@ class UploadWindow(QMainWindow):
         # if an uploader instance does not have a default host configured, prompt the user to configure one
         if self.uploader:
             del self.uploader
-        self.uploader = uploader(self.config_file, self.credential_file, server)
+        self.uploader = uploader(self.config_file, self.credential_file, server, dcctx_cid="gui/DerivaUploadGUI")
         if not self.uploader.server:
             if not self.checkValidServer():
                 return
             else:
                 self.uploader.setServer(server)
-        self.uploader.set_dcctx_cid("DerivaUploadGUI")
 
         self.setWindowTitle("%s (%s)" % (self.ui.title, self.uploader.server["host"]))
 
