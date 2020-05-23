@@ -8,22 +8,13 @@ from PyQt5.QtWidgets import qApp, QMainWindow, QWidget, QAction, QSizePolicy, QP
     QToolBar, QStatusBar, QVBoxLayout, QHBoxLayout, QTableWidgetItem, QAbstractItemView, QLineEdit, QFileDialog, \
     QMessageBox
 from deriva.core import write_config, stob
-from deriva.qt import EmbeddedAuthWindow, QPlainTextEditLogger, TableWidget, Request, __version__
+from deriva.qt import EmbeddedAuthWindow, QPlainTextEditLogger, Task, TableWidget, __version__
 from deriva.qt.upload_gui.impl.upload_tasks import *
 from deriva.qt.upload_gui.ui.options_window import OptionsDialog
 from deriva.qt.upload_gui.resources import resources
 
 
 class UploadWindow(QMainWindow):
-    uploader = None
-    config_file = None
-    credential_file = None
-    cookie_persistence = True
-    auth_window = None
-    identity = None
-    current_path = None
-    uploading = False
-    save_progress_on_cancel = False
     progress_update_signal = pyqtSignal(str)
 
     def __init__(self,
@@ -35,6 +26,14 @@ class UploadWindow(QMainWindow):
                  cookie_persistence=True):
         super(UploadWindow, self).__init__()
         qApp.aboutToQuit.connect(self.quitEvent)
+
+        assert uploader is not None
+        self.uploader = None
+        self.auth_window = None
+        self.identity = None
+        self.current_path = None
+        self.uploading = False
+        self.save_progress_on_cancel = False
 
         self.ui = UploadWindowUI(self)
         self.ui.title = window_title if window_title else "Deriva Upload Utility %s" % __version__
@@ -182,7 +181,7 @@ class UploadWindow(QMainWindow):
         qApp.setOverrideCursor(Qt.WaitCursor)
         self.save_progress_on_cancel = save_progress
         self.uploader.cancel()
-        Request.shutdown()
+        Task.shutdown_all()
         self.statusBar().showMessage("Waiting for background tasks to terminate...")
 
         while True:

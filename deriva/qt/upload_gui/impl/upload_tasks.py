@@ -1,112 +1,94 @@
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal
 from deriva.core import format_exception
 from deriva.transfer import DerivaUpload
-from deriva.qt import async_execute, AsyncTask
+from deriva.qt import async_execute, Task
 
 
-class UploadTask(AsyncTask):
+class UploadTask(QObject):
+    status_update_signal = pyqtSignal(bool, str, str, object)
+    progress_update_signal = pyqtSignal(int, int)
+
     def __init__(self, uploader, parent=None):
         super(UploadTask, self).__init__(parent)
         assert (uploader is not None and isinstance(uploader, DerivaUpload))
         self.uploader = uploader
+        self.task = None
+
+    def start(self):
+        async_execute(self.task)
+
+    def cancel(self):
+        self.task.cancel()
+
+    def set_status(self, success, status, detail, result):
+        self.status_update_signal.emit(success, status, detail, result)
+
+    def result_callback(self, success, result):
+        self.set_status(success, str(status), "", result)
+
+    def progress_callback(self, current, maximum):
+        if self.task.canceled:
+            return False
+
+        self.progress_update_signal.emit(current, maximum)
+        return True
 
 
 class SessionQueryTask(UploadTask):
-    status_update_signal = pyqtSignal(bool, str, str, object)
-
     def __init__(self, parent=None):
         super(SessionQueryTask, self).__init__(parent)
 
-    def success_callback(self, rid, result):
-        if rid != self.rid:
-            return
-        self.status_update_signal.emit(True, "Session query success", "", result.json())
-
-    def error_callback(self, rid, error):
-        if rid != self.rid:
-            return
-        self.status_update_signal.emit(False, "Session query failure", format_exception(error), None)
+    def result_callback(self, success, result):
+        self.set_status(success,
+                        "Session query success" if success else "Session query failure",
+                        "" if success else format_exception(result),
+                        result.json() if success else None)
 
     def query(self):
-        self.init_request()
-        self.request = async_execute(self.uploader.catalog.get_authn_session,
-                                     [],
-                                     self.rid,
-                                     self.success_callback,
-                                     self.error_callback)
+        self.task = Task(self.uploader.catalog.get_authn_session, [], self.result_callback)
+        self.start()
 
 
 class ConfigUpdateTask(UploadTask):
-    status_update_signal = pyqtSignal(bool, str, str, object)
-
     def __init__(self, parent=None):
         super(ConfigUpdateTask, self).__init__(parent)
 
-    def success_callback(self, rid, result):
-        if rid != self.rid:
-            return
-        self.status_update_signal.emit(True, "Configuration update success", "", result)
-
-    def error_callback(self, rid, error):
-        if rid != self.rid:
-            return
-        self.status_update_signal.emit(False, "Configuration update failure", format_exception(error), None)
+    def result_callback(self, success, result):
+        self.set_status(success,
+                        "Configuration update success" if success else "Configuration update failure",
+                        "" if success else format_exception(result),
+                        result if success else None)
 
     def update_config(self):
-        self.init_request()
-        self.request = async_execute(self.uploader.getUpdatedConfig,
-                                     [],
-                                     self.rid,
-                                     self.success_callback,
-                                     self.error_callback)
+        self.task = Task(self.uploader.getUpdatedConfig, [], self.result_callback)
+        self.start()
 
 
 class ScanDirectoryTask(UploadTask):
-    status_update_signal = pyqtSignal(bool, str, str, object)
-
     def __init__(self, parent=None):
         super(ScanDirectoryTask, self).__init__(parent)
 
-    def success_callback(self, rid, result):
-        if rid != self.rid:
-            return
-        self.status_update_signal.emit(True, "Directory scan success", "", None)
-
-    def error_callback(self, rid, error):
-        if rid != self.rid:
-            return
-        self.status_update_signal.emit(False, "Directory scan failed", format_exception(error), None)
+    def result_callback(self, success, result):
+        self.set_status(success,
+                        "Directory scan success" if success else "Directory scan failure.",
+                        "" if success else format_exception(result),
+                        None)
 
     def scan(self, path):
-        self.init_request()
-        self.request = async_execute(self.uploader.scanDirectory,
-                                     [path],
-                                     self.rid,
-                                     self.success_callback,
-                                     self.error_callback)
+        self.task = Task(self.uploader.scanDirectory, [path], self.result_callback)
+        self.start()
 
 
 class UploadFilesTask(UploadTask):
-    status_update_signal = pyqtSignal(bool, str, str, object)
-    progress_update_signal = pyqtSignal(int, int)
-
     def __init__(self, parent=None):
         super(UploadFilesTask, self).__init__(parent)
 
-    def success_callback(self, rid, result):
-        if rid != self.rid:
-            return
-        self.status_update_signal.emit(True, "File upload success", "", None)
-
-    def error_callback(self, rid, error):
-        if rid != self.rid:
-            return
-        self.status_update_signal.emit(False, "File upload failed", format_exception(error), None)
+    def result_callback(self, success, result):
+        self.set_status(success,
+                        "File upload success" if success else "File upload failure",
+                        "" if success else format_exception(result),
+                        None)
 
     def upload(self, status_callback=None, file_callback=None):
-        self.init_request()
-        self.request = async_execute(self.uploader.uploadFiles,
-                                     [status_callback, file_callback],
-                                     self.rid,
-                                     self.success_callback,
-                                     self.error_callback)
+        self.task = Task(self.uploader.uploadFiles, [status_callback, file_callback], self.result_callback)
+        self.start()

@@ -1,98 +1,77 @@
 import sys
-from PyQt5.QtCore import Qt, QObject, QThreadPool, QRunnable, pyqtSignal
+from PyQt5.QtCore import QObject, QRunnable, QThreadPool, pyqtSignal
 
 
-def async_execute(method, args, uid, success_callback, error_callback=None):
-    request = Request(method, args, uid, success_callback, error_callback)
-    QThreadPool.globalInstance().start(request)
-    return request
+def async_execute(task):
+    QThreadPool.globalInstance().start(task)
 
 
-class Request(QRunnable):
+class TaskSignal(QObject):
+    callback = pyqtSignal(bool, object)
+
+    def __init__(self, callback, parent=None):
+        super(TaskSignal, self).__init__(parent)
+        self.callback.connect(callback)
+
+
+class Task(QRunnable):
 
     INSTANCES = []
-    FINISHED = []
 
-    def __init__(self, method, args, uid, success_callback, error_callback=None):
-        super(Request, self).__init__()
-        self.setAutoDelete(True)
-        self.cancelled = False
+    def __init__(self, method, args, callback):
+        super(Task, self).__init__()
 
         self.method = method
         self.args = args
-        self.uid = uid
-        self.success = success_callback
-        self.error = error_callback
+        self.canceled = False
+        self.signal = None
+        self.callback = callback
+        self.setAutoDelete(True)
 
-        Request.INSTANCES.append(self)
+        Task.INSTANCES.append(self)
 
-        # release all of the finished tasks
-        Request.FINISHED = []
+    def cancel(self):
+        self.canceled = True
+
+    def signal_success(self, result):
+        self.signal.callback.emit(True, result)
+
+    def signal_failure(self, result):
+        self.signal.callback.emit(False, result)
+
+    def signal_canceled(self):
+        self.signal.callback.emit(False, "Task canceled.")
 
     def run(self):
-        # this allows us to "cancel" queued tasks if needed, should be done
-        # on shutdown to prevent the app from hanging
-        if self.cancelled:
-            self.cleanup()
-            return
-
-        requester = Requester()
-        requester.Success.connect(self.success, Qt.QueuedConnection)
-        if self.error is not None:
-            requester.Error.connect(self.error, Qt.QueuedConnection)
-
         try:
-            result = self.method(*self.args)
-            if self.cancelled:
+            self.signal = TaskSignal(self.callback)
+            if self.canceled:
+                self.signal_canceled()
                 return
-            requester.Success.emit(self.uid, result)
+            result = self.method(*self.args)
+            if self.canceled:
+                self.signal_canceled()
+                return
+            self.signal_success(result)
         except:
             (etype, value, traceback) = sys.exc_info()
-            # sys.excepthook(etype, value, traceback)
-            if self.cancelled:
+            if self.canceled:
+                self.signal_canceled()
                 return
-            requester.Error.emit(self.uid, value)
+            self.signal_failure(str(value))
         finally:
-            self.cleanup(requester)
+            self.cleanup()
 
-    def cleanup(self, requester=None):
-        if requester is not None:
-            requester.deleteLater()
-
-        self.remove()
-
-    def remove(self):
+    def cleanup(self):
+        if self.signal is not None:
+            self.signal.deleteLater()
         try:
-            Request.INSTANCES.remove(self)
-            Request.FINISHED.append(self)
+            Task.INSTANCES.remove(self)
         except ValueError:
             return
 
     @staticmethod
-    def shutdown():
-        for inst in Request.INSTANCES:
-            inst.cancelled = True
-        Request.INSTANCES = []
-        Request.FINISHED = []
-
-
-class Requester(QObject):
-    
-    Error = pyqtSignal(object, object)
-    Success = pyqtSignal(object, object)
-
-    def __init__(self, parent=None):
-        super(Requester, self).__init__(parent)
-
-
-class AsyncTask(QObject):
-    def __init__(self, parent=None):
-        super(AsyncTask, self).__init__(parent)
-        self.rid = 0
-        self.request = None
-
-    def init_request(self):
-        if self.request is not None:
-            self.request.cancelled = True
-            self.request = None
-        self.rid += 1
+    def shutdown_all():
+        for task in Task.INSTANCES:
+            task.cancel()
+        Task.INSTANCES = []

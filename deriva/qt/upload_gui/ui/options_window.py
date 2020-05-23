@@ -85,17 +85,17 @@ class OptionsDialog(QDialog):
         layout.addWidget(self.configGroupBox)
 
         # Upload
-        self.uploadGroupBox = QGroupBox("Upload:", self)
-        self.uploadLayout = QHBoxLayout()
-        self.uploadAllButton = QRadioButton("Files and Data")
-        self.uploadAllButton.setChecked(True)
-        self.uploadLayout.addWidget(self.uploadAllButton)
-        self.uploadFilesButton = QRadioButton("Files only")
-        self.uploadLayout.addWidget(self.uploadFilesButton)
-        self.uploadDataButton = QRadioButton("Data only")
-        self.uploadLayout.addWidget(self.uploadDataButton)
-        self.uploadGroupBox.setLayout(self.uploadLayout)
-        layout.addWidget(self.uploadGroupBox)
+        # self.uploadGroupBox = QGroupBox("Upload:", self)
+        # self.uploadLayout = QHBoxLayout()
+        # self.uploadAllButton = QRadioButton("Files and Data")
+        # self.uploadAllButton.setChecked(True)
+        # self.uploadLayout.addWidget(self.uploadAllButton)
+        # self.uploadFilesButton = QRadioButton("Files only")
+        # self.uploadLayout.addWidget(self.uploadFilesButton)
+        # self.uploadDataButton = QRadioButton("Data only")
+        # self.uploadLayout.addWidget(self.uploadDataButton)
+        # self.uploadGroupBox.setLayout(self.uploadLayout)
+        # layout.addWidget(self.uploadGroupBox)
 
         # Miscellaneous
         self.miscGroupBox = QGroupBox("Miscellaneous:", self)
