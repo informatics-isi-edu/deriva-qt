@@ -132,7 +132,7 @@ class UploadWindow(QMainWindow):
             event.accept()
 
     def checkValidServer(self):
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
         if self.uploader.server and self.uploader.server.get("host"):
             return True
         msg = QMessageBox()
@@ -170,7 +170,7 @@ class UploadWindow(QMainWindow):
 
         qApp.setOverrideCursor(Qt.WaitCursor)
         self.uploader.setServer(server)
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
         if not self.checkValidServer():
             return
         self.setWindowTitle("%s (%s)" % (self.ui.title, self.uploader.server["host"]))
@@ -191,7 +191,7 @@ class UploadWindow(QMainWindow):
 
         self.uploading = False
         self.statusBar().showMessage("All background tasks terminated successfully")
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
 
     def uploadCallback(self, **kwargs):
         completed = kwargs.get("completed")
@@ -219,6 +219,10 @@ class UploadWindow(QMainWindow):
                 return False
 
         return True
+
+    def restoreCursor(self):
+        qApp.restoreOverrideCursor()
+        qApp.processEvents()
 
     def statusCallback(self, **kwargs):
         status = kwargs.get("status")
@@ -272,7 +276,7 @@ class UploadWindow(QMainWindow):
         url = self.uploader.config.get("version_update_url")
         if not url:
             return
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)
         msg.setWindowTitle("Version incompatibility detected!")
@@ -293,7 +297,7 @@ class UploadWindow(QMainWindow):
         configUpdateTask.status_update_signal.connect(self.onUpdateConfigResult)
         configUpdateTask.update_config()
 
-    def scanDirectory(self):
+    def scanDirectory(self, reset=False):
         self.uploader.reset()
         scanTask = ScanDirectoryTask(self.uploader)
         scanTask.status_update_signal.connect(self.onScanResult)
@@ -323,7 +327,7 @@ class UploadWindow(QMainWindow):
 
     @pyqtSlot(bool, str, str, object)
     def onSessionResult(self, success, status, detail, result):
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
         if success:
             self.identity = result["client"]["id"]
             display_name = result["client"]["full_name"]
@@ -340,7 +344,7 @@ class UploadWindow(QMainWindow):
 
     @pyqtSlot(bool, str, str, object)
     def onUpdateConfigResult(self, success, status, detail, result):
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
         if not success:
             self.resetUI(status, detail)
             return
@@ -391,7 +395,7 @@ class UploadWindow(QMainWindow):
 
     @pyqtSlot(bool, str, str, object)
     def onScanResult(self, success, status, detail, result):
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
         if success:
             self.displayUploads(self.uploader.getFileStatusAsArray())
             self.ui.actionUpload.setEnabled(self.canUpload())
@@ -422,7 +426,7 @@ class UploadWindow(QMainWindow):
 
     @pyqtSlot(bool, str, str, object)
     def onUploadResult(self, success, status, detail, result):
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
         self.uploading = False
         self.displayUploads(self.uploader.getFileStatusAsArray())
         if success:
@@ -433,7 +437,7 @@ class UploadWindow(QMainWindow):
     @pyqtSlot()
     def on_actionCancel_triggered(self):
         self.cancelTasks(self.cancelConfirmation())
-        qApp.restoreOverrideCursor()
+        self.restoreCursor()
         self.displayUploads(self.uploader.getFileStatusAsArray())
         self.resetUI("Ready.")
 
@@ -493,9 +497,8 @@ class UploadWindow(QMainWindow):
             return True
         return False
 
-    @staticmethod
-    def cancelConfirmation():
-        qApp.restoreOverrideCursor()
+    def cancelConfirmation(self):
+        self.restoreCursor()
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)
         msg.setWindowTitle("Confirm Action")
@@ -663,6 +666,7 @@ class UploadWindowUI(object):
         self.mainToolBar = QToolBar(MainWin)
         self.mainToolBar.setObjectName("mainToolBar")
         self.mainToolBar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        self.mainToolBar.setContextMenuPolicy(Qt.PreventContextMenu)
         MainWin.addToolBar(Qt.TopToolBarArea, self.mainToolBar)
 
         # Upload

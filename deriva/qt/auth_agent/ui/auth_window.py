@@ -378,6 +378,7 @@ class AuthWindowUI(object):
         self.mainToolBar = QToolBar(MainWin)
         self.mainToolBar.setObjectName("mainToolBar")
         self.mainToolBar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        self.mainToolBar.setContextMenuPolicy(Qt.PreventContextMenu)
         MainWin.addToolBar(Qt.TopToolBarArea, self.mainToolBar)
 
         # Servers

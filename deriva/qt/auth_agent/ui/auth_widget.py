@@ -198,6 +198,7 @@ class AuthWidget(QWebEngineView):
             self.authn_expires = time.time() + seconds_remaining + 1
             logging.trace("webauthn session:\n%s\n", json.dumps(self.authn_session, indent=2))
             qApp.restoreOverrideCursor()
+            qApp.processEvents()
             QTimer.singleShot(100, self._execSuccessCallback)
         except (ValueError, Exception) as e:
             error = format_exception(e)
@@ -220,6 +221,7 @@ class AuthWidget(QWebEngineView):
 
     def _onLoadFinished(self, result):
         qApp.restoreOverrideCursor()
+        qApp.processEvents()
         if not result:
             logging.debug("Page load error: %s" % self.page().url().toDisplayString())
             return
