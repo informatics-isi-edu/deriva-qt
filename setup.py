@@ -46,10 +46,6 @@ setup(
             'deriva-upload = deriva.qt.upload_gui.__main__:main'
         ]
     },
-    requires=[
-        'deriva',
-        'PyQt5'
-    ],
     install_requires=[
         'deriva>=0.9.0'
     ],
