@@ -7,6 +7,7 @@ import platform
 from requests.adapters import HTTPAdapter
 from requests.cookies import create_cookie
 from requests.packages.urllib3.util.retry import Retry
+from PyQt5.Qt import PYQT_VERSION_STR
 from PyQt5.QtCore import Qt, QTimer, QUrl
 from PyQt5.QtWidgets import qApp
 from PyQt5.QtNetwork import QNetworkCookie
@@ -62,9 +63,9 @@ class AuthWidget(QWebEngineView):
         self.token = None
 
         logging.getLogger().setLevel(log_level)
-        info = "%s v%s [Python %s, %s]" % (
+        info = "%s v%s [Python: %s (PyQt: %s), %s]" % (
             self.__class__.__name__, get_installed_version(VERSION),
-            platform.python_version(), platform.platform(aliased=True))
+            platform.python_version(), PYQT_VERSION_STR, platform.platform(aliased=True))
         logging.info("Initializing authorization provider: %s" % info)
         self.cookie_persistence = cookie_persistence
         self._timer = QTimer(self)
