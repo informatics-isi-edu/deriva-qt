@@ -29,15 +29,18 @@ DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser(os.path.normpath("~/.deriv
 
 DEFAULT_HTML = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>DERIVA Auth Agent</title></head>' \
                '<body style="text-align: center; vertical-align: middle;">' \
-               '<div id = "spinner" style="margin:0 auto;"><img src = "loader.gif" class ="spinner"/>' \
-               '<div style = "margin-top: 15px;">Please wait... </div></div>' \
+               '<div style = "margin-top: 50px;"><font size="+2">' \
+               'Authenticating to:<br/><br/><b>%s</b><br/><br/>Please wait...</font></div>' \
                '</body></html>'
 
 ERROR_HTML = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Error</title></head>' \
              '<body style="text-align: center; vertical-align: middle;">%s</body></html>'
 
-SUCCESS_HTML = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Authentication Success</title></head>' \
-               '<body style="text-align: center; vertical-align: middle;">Authentication successful.</body></html>'
+SUCCESS_HTML = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' \
+               '<title>Authentication Success</title></head>' \
+               '<body style="text-align: center; vertical-align: middle;">' \
+               '<div style = "margin-top: 50px;"><font size="+2"><b>Authentication Successful.</b></font></div>' \
+               '</body></html>'
 
 
 class AuthWidget(QWebEngineView):
@@ -61,6 +64,7 @@ class AuthWidget(QWebEngineView):
         self._failure_callback = None
         self._session = requests.session()
         self.token = None
+        self.default_profile = QWebEngineProfile("deriva-auth", self)
 
         logging.getLogger().setLevel(log_level)
         info = "%s v%s [Python: %s (PyQt: %s), %s]" % (
@@ -77,7 +81,7 @@ class AuthWidget(QWebEngineView):
         self.credential_file = credential_file
         host = self.config.get("host")
         if not host:
-            self.setHtml(ERROR_HTML % "Could not locate hostname parameter in configuration.")
+            self.set_current_html(ERROR_HTML % "Could not locate hostname parameter in configuration.")
             return
         self.auth_url = QUrl()
         self.auth_url.setScheme(config.get("protocol", "https"))
@@ -97,6 +101,13 @@ class AuthWidget(QWebEngineView):
         self._session.mount(self.auth_url.toString() + '/',
                             HTTPAdapter(max_retries=retries))
 
+    def set_current_html(self, html):
+        page = QWebEnginePage(self.parent)
+        page.setHtml(html)
+        self.setPage(page)
+        self.update()
+        qApp.processEvents()
+
     def authenticated(self):
         if self.authn_session is None:
             return False
@@ -114,10 +125,9 @@ class AuthWidget(QWebEngineView):
         logging.info("Authenticating with host: %s" % self.auth_url.toString())
         qApp.setOverrideCursor(Qt.WaitCursor)
         self._cleanup()
-        self.setHtml(DEFAULT_HTML)
         self.authn_session_page = \
             QWebEnginePage(QWebEngineProfile(self), self.parent) \
-            if not self.cookie_persistence else QWebEnginePage(self.parent)
+            if not self.cookie_persistence else QWebEnginePage(self.default_profile, self.parent)
         self.authn_session_page.profile().setPersistentCookiesPolicy(
             QWebEngineProfile.ForcePersistentCookies if self.cookie_persistence else
             QWebEngineProfile.NoPersistentCookies)
@@ -185,7 +195,8 @@ class AuthWidget(QWebEngineView):
 
     def _onSessionContent(self, content):
         try:
-            self.setHtml(SUCCESS_HTML)
+            qApp.restoreOverrideCursor()
+            self.set_current_html(SUCCESS_HTML)
             try:
                 self.authn_session = json.loads(content)
             except json.JSONDecodeError:
@@ -198,13 +209,11 @@ class AuthWidget(QWebEngineView):
                 self._timer.start(interval * 1000)
             self.authn_expires = time.time() + seconds_remaining + 1
             logging.trace("webauthn session:\n%s\n", json.dumps(self.authn_session, indent=2))
-            qApp.restoreOverrideCursor()
-            qApp.processEvents()
             QTimer.singleShot(100, self._execSuccessCallback)
         except (ValueError, Exception) as e:
             error = format_exception(e)
             logging.error(error)
-            self.setHtml(ERROR_HTML % content)
+            self.set_current_html(ERROR_HTML % content)
             self._execFailureCallback(error)
 
     def _onPreAuthContent(self, content):
@@ -218,18 +227,24 @@ class AuthWidget(QWebEngineView):
             self.authn_session_page.setUrl(QUrl(preauth["redirect_url"]))
         except (ValueError, Exception) as e:
             logging.error(format_exception(e))
-            self.setHtml(ERROR_HTML % content)
+            self.set_current_html(ERROR_HTML % content)
 
     def _onLoadFinished(self, result):
         qApp.restoreOverrideCursor()
         qApp.processEvents()
         if not result:
-            logging.debug("Page load error: %s" % self.page().url().toDisplayString())
+            self.setPage(self.authn_session_page)
+            logging.debug("Page load error: %s" % self.authn_session_page.url().toDisplayString())
             return
-        if self.page().url().path() == "/authn/preauth":
-            self.page().toPlainText(self._onPreAuthContent)
-        elif self.page().url().path() == "/authn/session":
-            self.page().toPlainText(self._onSessionContent)
+        self.set_current_html(DEFAULT_HTML % self.auth_url.host())
+        path = self.authn_session_page.url().path()
+        if path == "/authn/preauth":
+            self.authn_session_page.toPlainText(self._onPreAuthContent)
+        elif path == "/authn/session":
+            self.authn_session_page.toPlainText(self._onSessionContent)
+        else:
+            if self.page() != self.authn_session_page:
+                self.setPage(self.authn_session_page)
 
     def _onLoadProgress(self, progress):
         self.setStatus("Loading page: %s [%d%%]" % (self.page().url().host(), progress))
@@ -285,6 +300,6 @@ class AuthWidget(QWebEngineView):
             self.authn_session_page.loadFinished.disconnect(self._onLoadFinished)
             self.authn_session_page.profile().cookieStore().cookieAdded.disconnect(self._onCookieAdded)
             self.authn_session_page.profile().cookieStore().cookieRemoved.disconnect(self._onCookieRemoved)
+            self.authn_session_page.profile().deleteLater()
             self.authn_session_page.deleteLater()
-            del self.authn_session_page
             self.authn_session_page = None

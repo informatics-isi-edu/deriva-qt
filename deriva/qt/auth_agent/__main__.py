@@ -36,8 +36,7 @@ def main():
     auth_window = AuthWindow(config, args.credential_file,
                              cookie_persistence=args.cookie_persistence, log_level=log_level)
     auth_window.show()
-    ret = app.exec_()
-    return ret
+    return app.exec()
 
 
 if __name__ == '__main__':
