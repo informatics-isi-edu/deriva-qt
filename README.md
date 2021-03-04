@@ -1,5 +1,6 @@
 # deriva-qt
 [![PyPi Version](https://img.shields.io/pypi/v/deriva-qt.svg)](https://pypi.python.org/pypi/deriva-qt)
+[![PyPi Downloads](https://img.shields.io/pypi/dm/deriva-qt.svg)](https://pypistats.org/packages/deriva-qt)
 [![PyPi Wheel](https://img.shields.io/pypi/wheel/deriva-qt.svg)](https://pypi.python.org/pypi/deriva-qt)
 [![Python Versions](https://img.shields.io/pypi/pyversions/deriva-qt.svg)](https://pypi.python.org/pypi/deriva-qt)
 [![License](https://img.shields.io/pypi/l/deriva-qt.svg)](https://www.gnu.org/licenses/gpl-3.0)
