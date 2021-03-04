@@ -1,4 +1,3 @@
-import sys
 from deriva.transfer import GenericUploader
 from deriva.qt import DerivaUploadGUI
 
@@ -13,4 +12,4 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()

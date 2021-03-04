@@ -479,6 +479,7 @@ class UploadWindow(QMainWindow):
         if self.auth_window:
             self.auth_window.logout(self.logoutConfirmation())
         qApp.closeAllWindows()
+        self.deleteLater()
 
     def logoutConfirmation(self):
         if self.auth_window and (not self.auth_window.authenticated() or not self.auth_window.cookie_persistence):

@@ -326,6 +326,7 @@ class AuthWindow(QMainWindow):
             return
         self.logout()
         self.systemTrayIcon.hide()
+        self.deleteLater()
 
 
 class AuthWindowUI(object):

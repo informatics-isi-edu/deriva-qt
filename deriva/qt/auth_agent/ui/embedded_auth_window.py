@@ -71,6 +71,7 @@ class EmbeddedAuthWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.logout()
+        self.deleteLater()
 
 
 class EmbeddedAuthWindowUI(object):

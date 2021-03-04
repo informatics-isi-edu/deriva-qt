@@ -42,8 +42,7 @@ class DerivaUploadGUI(BaseCLI):
                               window_title=window_title,
                               cookie_persistence=cookie_persistence)
         window.show()
-        ret = app.exec_()
-        window.destroy()
+        ret = app.exec()
 
         return ret
 
