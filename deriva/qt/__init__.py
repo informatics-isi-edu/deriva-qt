@@ -1,4 +1,4 @@
-__version__ = "1.4.5"
+__version__ = "1.5.0"
 
 from deriva.qt.common.async_task import async_execute, Task
 from deriva.qt.common.log_widget import QPlainTextEditLogger
@@ -17,7 +17,7 @@ import sys
 if sys.platform == "darwin":
     if getattr(sys, "frozen", False) and getattr(sys, "executable", False):
         executableDir = os.path.join(os.path.dirname(sys.executable))
-        webEngineProcessLocation = os.path.join(executableDir, 'lib', 'PyQt5', 'Qt', 'lib',
+        webEngineProcessLocation = os.path.join(executableDir, 'lib', 'PyQt5', 'Qt5', 'lib',
                                                 'QtWebEngineCore.framework', 'Helpers', 'QtWebEngineProcess.app',
                                                 'Contents', 'MacOS', 'QtWebEngineProcess')
         os.environ['QTWEBENGINEPROCESS_PATH'] = webEngineProcessLocation
