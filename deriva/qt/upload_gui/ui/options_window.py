@@ -3,8 +3,8 @@ import re
 import logging
 from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, \
-    QGroupBox, QRadioButton, QComboBox, QCheckBox, QMessageBox, QDialogButtonBox, qApp
-from deriva.core import stob
+    QGroupBox, QRadioButton, QComboBox, QCheckBox, QMessageBox, QDialogButtonBox, QSpinBox, qApp
+from deriva.core import stob, DEFAULT_SESSION_CONFIG
 from deriva.transfer import GenericUploader
 from deriva.qt import JSONEditor
 
@@ -265,6 +265,7 @@ class ServerDialog(QDialog):
     def __init__(self, parent, server):
         super(ServerDialog, self).__init__(parent)
         self.server = server
+        self.session_config = self.server.get('session', DEFAULT_SESSION_CONFIG.copy())
         self.setWindowTitle("Server Configuration")
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setMinimumWidth(400)
@@ -297,6 +298,46 @@ class ServerDialog(QDialog):
         self.serverLayout.addLayout(self.catalogIDLayout)
         self.serverGroupBox.setLayout(self.serverLayout)
         layout.addWidget(self.serverGroupBox)
+
+        # connect timeout/retry settings
+        self.serverConnectTimeoutsGroupBox = QGroupBox("Connection Timeout and Retries:", self)
+        self.connectLayout = QHBoxLayout()
+        # connect timeout
+        self.connectTimeoutLabel = QLabel("Connect timeout (secs):")
+        self.connectLayout.addWidget(self.connectTimeoutLabel)
+        self.connectTimeoutSpinBox = QSpinBox(parent)
+        self.connectTimeoutSpinBox.setRange(1, 60)
+        self.connectTimeoutSpinBox.setValue(self.session_config.get("timeout")[0] or 6)
+        self.connectLayout.addWidget(self.connectTimeoutSpinBox)
+        # connect retry
+        self.connectRetryLabel = QLabel("Connect retries:")
+        self.connectLayout.addWidget(self.connectRetryLabel)
+        self.connectRetrySpinBox = QSpinBox(parent)
+        self.connectRetrySpinBox.setRange(1, 60)
+        self.connectRetrySpinBox.setValue(self.session_config.get("retry_connect", 10))
+        self.connectLayout.addWidget(self.connectRetrySpinBox)
+        self.serverConnectTimeoutsGroupBox.setLayout(self.connectLayout)
+        layout.addWidget(self.serverConnectTimeoutsGroupBox)
+
+        # io timeout/retry settings
+        self.serverIOTimeoutsGroupBox = QGroupBox("I/O Timeout and Retries:", self)
+        self.ioLayout = QHBoxLayout()
+        # io timeout
+        self.ioTimeoutLabel = QLabel("I/O timeout (secs):")
+        self.ioLayout.addWidget(self.ioTimeoutLabel)
+        self.ioTimeoutSpinBox = QSpinBox(parent)
+        self.ioTimeoutSpinBox.setRange(1, 600)
+        self.ioTimeoutSpinBox.setValue(self.session_config.get("timeout")[1] or 60)
+        self.ioLayout.addWidget(self.ioTimeoutSpinBox)
+        # io retry
+        self.ioRetryLabel = QLabel("I/O retries:")
+        self.ioLayout.addWidget(self.ioRetryLabel)
+        self.ioRetrySpinBox = QSpinBox(parent)
+        self.ioRetrySpinBox.setRange(1, 60)
+        self.ioRetrySpinBox.setValue(self.session_config.get("retry_read", 10))
+        self.ioLayout.addWidget(self.ioRetrySpinBox)
+        self.serverIOTimeoutsGroupBox.setLayout(self.ioLayout)
+        layout.addWidget(self.serverIOTimeoutsGroupBox)
 
         setServers = getattr(parent.uploader, "setServers", None)
         self.serversConfigurable = True if callable(setServers) else False
@@ -353,6 +394,11 @@ class ServerDialog(QDialog):
 
         catalog_id = int(self.catalogIDTextBox.text())
         self.server["catalog_id"] = catalog_id if catalog_id else 1
+
+        self.session_config["timeout"] = (self.connectTimeoutSpinBox.value(), self.ioTimeoutSpinBox.value())
+        self.session_config["retry_connect"] = self.connectRetrySpinBox.value()
+        self.session_config["retry_read"] = self.ioRetrySpinBox.value()
+        self.server["session"] = self.session_config
 
         return True
 

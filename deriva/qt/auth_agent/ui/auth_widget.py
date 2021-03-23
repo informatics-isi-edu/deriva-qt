@@ -300,6 +300,7 @@ class AuthWidget(QWebEngineView):
             self.authn_session_page.loadFinished.disconnect(self._onLoadFinished)
             self.authn_session_page.profile().cookieStore().cookieAdded.disconnect(self._onCookieAdded)
             self.authn_session_page.profile().cookieStore().cookieRemoved.disconnect(self._onCookieRemoved)
-            self.authn_session_page.profile().deleteLater()
+            if self.default_profile != self.authn_session_page.profile():
+                self.authn_session_page.profile().deleteLater()
             self.authn_session_page.deleteLater()
             self.authn_session_page = None
