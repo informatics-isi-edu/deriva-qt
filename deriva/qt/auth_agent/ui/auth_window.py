@@ -310,20 +310,19 @@ class AuthWindow(QMainWindow):
         super(AuthWindow, self).changeEvent(event)
 
     def closeEvent(self, event):
-        if not self.authenticated():
-            return
+        if self.authenticated():
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Confirm Action")
+            msg.setText("Are you sure you wish to exit?")
+            msg.setInformativeText(
+                "If you close the application, your credentials will be invalidated once the application has exited.")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            ret = msg.exec_()
+            if ret == QMessageBox.No:
+                event.ignore()
+                return
 
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
-        msg.setWindowTitle("Confirm Action")
-        msg.setText("Are you sure you wish to exit?")
-        msg.setInformativeText(
-            "If you close the application, your credentials will be invalidated once the application has exited.")
-        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        ret = msg.exec_()
-        if ret == QMessageBox.No:
-            event.ignore()
-            return
         self.logout()
         self.systemTrayIcon.hide()
         self.deleteLater()

@@ -65,6 +65,7 @@ class AuthWidget(QWebEngineView):
         self._session = requests.session()
         self.token = None
         self.default_profile = QWebEngineProfile("deriva-auth", self)
+        self.private_profile = QWebEngineProfile(self)
 
         logging.getLogger().setLevel(log_level)
         info = "%s v%s [Python: %s (PyQt: %s), %s]" % (
@@ -125,12 +126,14 @@ class AuthWidget(QWebEngineView):
         logging.info("Authenticating with host: %s" % self.auth_url.toString())
         qApp.setOverrideCursor(Qt.WaitCursor)
         self._cleanup()
-        self.authn_session_page = \
-            QWebEnginePage(QWebEngineProfile(self), self.parent) \
+        self.authn_session_page = QWebEnginePage(self.private_profile, self.parent) \
             if not self.cookie_persistence else QWebEnginePage(self.default_profile, self.parent)
         self.authn_session_page.profile().setPersistentCookiesPolicy(
             QWebEngineProfile.ForcePersistentCookies if self.cookie_persistence else
             QWebEngineProfile.NoPersistentCookies)
+        if self.cookie_persistence:
+            logging.debug("QTWebEngine persistent storage located at: %s" %
+                          self.authn_session_page.profile().persistentStoragePath())
         self.authn_session_page.profile().cookieStore().cookieAdded.connect(self._onCookieAdded)
         self.authn_session_page.profile().cookieStore().cookieRemoved.connect(self._onCookieRemoved)
         self.authn_session_page.loadProgress.connect(self._onLoadProgress)
@@ -142,21 +145,20 @@ class AuthWidget(QWebEngineView):
     def logout(self, delete_cookies=False):
         if not (self.auth_url and (self.auth_url.host() and self.auth_url.scheme())):
             return
-        if not self.authenticated():
-            return
-        try:
-            logging.info("Logging out of host: %s" % self.auth_url.toString())
-            if delete_cookies and self.cookie_persistence:
-                self.authn_session_page.profile().cookieStore().deleteAllCookies()
-            self._session.delete(self.auth_url.toString() + "/authn/session")
-            if self.credential_file:
-                creds = read_credential(self.credential_file, create_default=True)
-                host = self.auth_url.host()
-                if creds.get(host):
-                    del creds[host]
-                write_credential(self.credential_file, creds)
-        except Exception as e:
-            logging.warning("Logout error: %s" % format_exception(e))
+        if self.authenticated():
+            try:
+                logging.info("Logging out of host: %s" % self.auth_url.toString())
+                if delete_cookies and self.cookie_persistence:
+                    self.authn_session_page.profile().cookieStore().deleteAllCookies()
+                self._session.delete(self.auth_url.toString() + "/authn/session")
+                if self.credential_file:
+                    creds = read_credential(self.credential_file, create_default=True)
+                    host = self.auth_url.host()
+                    if creds.get(host):
+                        del creds[host]
+                    write_credential(self.credential_file, creds)
+            except Exception as e:
+                logging.warning("Logout error: %s" % format_exception(e))
         self._cleanup()
 
     def setSuccessCallback(self, callback=None):
@@ -244,6 +246,7 @@ class AuthWidget(QWebEngineView):
             self.authn_session_page.toPlainText(self._onSessionContent)
         else:
             if self.page() != self.authn_session_page:
+                self.page().deleteLater()
                 self.setPage(self.authn_session_page)
 
     def _onLoadProgress(self, progress):
@@ -300,7 +303,5 @@ class AuthWidget(QWebEngineView):
             self.authn_session_page.loadFinished.disconnect(self._onLoadFinished)
             self.authn_session_page.profile().cookieStore().cookieAdded.disconnect(self._onCookieAdded)
             self.authn_session_page.profile().cookieStore().cookieRemoved.disconnect(self._onCookieRemoved)
-            if self.default_profile != self.authn_session_page.profile():
-                self.authn_session_page.profile().deleteLater()
             self.authn_session_page.deleteLater()
             self.authn_session_page = None
