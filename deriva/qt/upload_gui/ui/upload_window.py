@@ -81,8 +81,7 @@ class UploadWindow(QMainWindow):
         if self.auth_window:
             if self.auth_window.authenticated():
                 self.on_actionLogout_triggered()
-            self.auth_window.destroy()
-            del self.auth_window
+            self.auth_window.deleteLater()
 
         self.auth_window = \
             EmbeddedAuthWindow(self,
