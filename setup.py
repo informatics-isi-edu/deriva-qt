@@ -47,7 +47,7 @@ setup(
         ]
     },
     install_requires=[
-        'deriva>=1.4.1'
+        'deriva>=1.5.0'
     ],
     extras_require={
         'PyQt5': ["PyQt5==5.11.3"],
@@ -65,6 +65,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9'
     ]
 )
 
