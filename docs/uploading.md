@@ -58,22 +58,19 @@ pip3 install --upgrade git+https://github.com/informatics-isi-edu/deriva-py.git
 
 ### 2. Getting an authentication token
 
-The uploader requires an authentication token to communicate with the server. Running the DERIVA-Auth tool on your desktop (through the applications menu on Windows or Mac, or with `deriva-auth` on Linux) will bring up an authentication window similar to the one used in the data browser. The first time you log in, you'll see a mostly-empty window:
-![Initial DERIVA-Auth run](images/deriva-auth-empty.png)
+Upload requests are authorized using OAuth2; to obtain an OAuth token, run the `deriva-globus-auth-util` utility:
 
-In the "Server:" area, type in the server provided by the DERIVA administrator. You should now see something that looks similar to the data browser login screen
-![Login window](https://github.com/informatics-isi-edu/gudmap-rbk/blob/master/wiki_images/submitting-data/sequencing_uploader/deriva-auth-globus.png)
+`deriva-globus-auth-utils login --host` _host_
 
-Note: in subsequent runs, DERIVA-Auth might take you directly to this window (skipping the blank screen at the beginning). It's always a good idea to look at the hostname before you log in.
+You can add the `--refresh` option if you want the token to last beyond the default timeout. To end the session, you can allow the token to expire or run:
 
-After logging in, you'll see an "Authentication Successful" message. Click the "Show Token" button; this will bring up another dialog box to verify that you really want to view the token. Click on "Show Details" to display the token.
-!["Show Details" window](images/show-details.png)
+`deriva-globus-auth-utils logout`
 
 ### 3. Uploading files
 
 On the server, run the command:
 
-`deriva-upload-cli` --catalog _n_ --token _token_ --catalog _n_ _host_ _/path/to/_/deriva
+`deriva-upload-cli` --catalog _n_ --catalog _n_ _host_ _/path/to/_/deriva
 
 where:
 
