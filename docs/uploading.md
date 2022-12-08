@@ -58,11 +58,28 @@ pip3 install --upgrade git+https://github.com/informatics-isi-edu/deriva-py.git
 
 ### 2. Getting an authentication token
 
-Upload requests are authorized using OAuth2; to obtain an OAuth token, run the `deriva-globus-auth-util` utility:
+Upload requests are authorized using OAuth2; to obtain an OAuth token, run the `deriva-globus-auth-util` utility on the host from which you'll be uploading files:
 
 `deriva-globus-auth-utils login --host` _host_
 
-You can add the `--refresh` option if you want the token to last beyond the default timeout. To end the session, you can allow the token to expire or run:
+You can add the `--refresh` option if you want the token to last beyond the default timeout. This will generate a URL for a OAuth consent page and ask you to paste the resulting authorization code:
+
+```
+Please paste the following URL in a browser:
+https://auth.globus.org/v2/oauth2/authorize?client_id=[long url redacted]
+Please Paste your Auth Code Below:
+```
+Paste the URL into a browser, follow the directions there, and then paste the authorization code back into the `deriva-globus-auth-utils` session. This will create and store your OAuth token.
+
+```
+Please paste the following URL in a browser:
+https://auth.globus.org/v2/oauth2/authorize?client_id=[long url redacted]
+Please Paste your Auth Code Below: 
+[code redacted]
+Login Successful
+```
+
+To end the session, you can allow the token to expire or run:
 
 `deriva-globus-auth-utils logout`
 
