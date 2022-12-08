@@ -70,12 +70,11 @@ You can add the `--refresh` option if you want the token to last beyond the defa
 
 On the server, run the command:
 
-`deriva-upload-cli` --catalog _n_ --catalog _n_ _host_ _/path/to/_/deriva
+`deriva-upload-cli` --catalog _n_ _host_ _/path/to/_/deriva
 
 where:
 
-* _n_ is the catalog number specified by your DERIVA administrator,
-* _token_ is the token cut-and-pasted from your DERIVA-Auth session, 
+* _n_ is the catalog number (if specified by your DERIVA administrator; otherwise this option can be omitted),
 * _host_ is the hostname provided by your DERIVA admin, and 
 * _/path/to/_/deriva is the path to the `deriva` directory you created above. 
 
