@@ -81,7 +81,7 @@ where:
 
 For example:
 ```
-deriva-upload-cli --catalog 2 --token xXXxxxxXXxxxxXxXXXxXxxxX www.gudmap.org $HOME/deriva
+deriva-upload-cli --catalog 2 www.atlas-d2k.org $HOME/deriva
 ```
 
 ### 4. Logging out
