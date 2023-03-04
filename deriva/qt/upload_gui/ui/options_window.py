@@ -293,7 +293,7 @@ class ServerDialog(QDialog):
         self.catalogIDLabel = QLabel("Catalog ID:")
         self.catalogIDLayout.addWidget(self.catalogIDLabel)
         self.catalogIDTextBox = QLineEdit()
-        self.catalogIDTextBox.setText(str(server.get("catalog_id", 1)))
+        self.catalogIDTextBox.setText(str(server.get("catalog_id", "1")))
         self.catalogIDLayout.addWidget(self.catalogIDTextBox)
         self.serverLayout.addLayout(self.catalogIDLayout)
         self.serverGroupBox.setLayout(self.serverLayout)
@@ -392,8 +392,8 @@ class ServerDialog(QDialog):
         desc = self.descriptionTextBox.text()
         self.server["desc"] = desc if desc else ""
 
-        catalog_id = int(self.catalogIDTextBox.text())
-        self.server["catalog_id"] = catalog_id if catalog_id else 1
+        catalog_id = self.catalogIDTextBox.text()
+        self.server["catalog_id"] = catalog_id if catalog_id else "1"
 
         self.session_config["timeout"] = (self.connectTimeoutSpinBox.value(), self.ioTimeoutSpinBox.value())
         self.session_config["retry_connect"] = self.connectRetrySpinBox.value()
