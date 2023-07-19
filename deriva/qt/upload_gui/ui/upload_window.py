@@ -211,6 +211,7 @@ class UploadWindow(QMainWindow):
         if status:
             self.progress_update_signal.emit(status)
 
+        qApp.processEvents()
         if self.uploader.cancelled:
             if self.save_progress_on_cancel:
                 return -1
@@ -226,6 +227,7 @@ class UploadWindow(QMainWindow):
     def statusCallback(self, **kwargs):
         status = kwargs.get("status")
         self.progress_update_signal.emit(status)
+        qApp.processEvents()
 
     def displayUploads(self, upload_list):
         keys = ["State",

@@ -229,8 +229,8 @@ class AuthWindow(QMainWindow):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
         msg.setWindowTitle("Display Authentication Token: %s" % host)
-        msg.setText("Click \"Show Details...\" to reveal your bearer token for host: [%s]\n\n"
-                    "This bearer token can be used to authenticate with DERIVA services on this host until the "
+        msg.setText("Click \"Show Details...\" to reveal your token for host: [%s]\n\n"
+                    "This token can be used to authenticate with DERIVA services on this host until the "
                     "credential lifetime expires." % host)
         msg.setDetailedText(token)
         msg.setStandardButtons(QMessageBox.Close)

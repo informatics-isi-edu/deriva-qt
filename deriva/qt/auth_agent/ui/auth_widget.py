@@ -12,7 +12,7 @@ from PyQt5.QtCore import Qt, QTimer, QUrl
 from PyQt5.QtWidgets import qApp
 from PyQt5.QtNetwork import QNetworkCookie
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile
-from deriva.core import read_config, read_credential, write_credential, load_cookies_from_file, \
+from deriva.core import read_config, read_credential, write_credential, get_credential, load_cookies_from_file, \
     format_exception, DEFAULT_SESSION_CONFIG, DEFAULT_CREDENTIAL, DEFAULT_COOKIE_JAR_FILE
 from deriva.core.utils.version_utils import get_installed_version
 from deriva.qt import __version__ as VERSION
@@ -111,6 +111,15 @@ class AuthWidget(QWebEngineView):
 
     def authenticated(self):
         if self.authn_session is None:
+            credentials = get_credential(self.config["host"])
+            if credentials and 'bearer-token' in credentials:
+                self._session.headers.update(
+                    {'Authorization': 'Bearer {token}'.format(token=credentials['bearer-token'])})
+                r = self._session.get(self.auth_url.toString() + "/authn/session")
+                if r.status_code == 200:
+                    self._onSessionContent(r.json())
+                    self.token = self._session.headers["Authorization"]
+                    return True
             return False
 
         now = time.time()
@@ -120,6 +129,8 @@ class AuthWidget(QWebEngineView):
         return True
 
     def login(self):
+        if self.authenticated():
+            return
         if not (self.auth_url and (self.auth_url.host() and self.auth_url.scheme())):
             logging.error("Missing or invalid hostname parameter in configuration.")
             return
@@ -149,7 +160,8 @@ class AuthWidget(QWebEngineView):
             try:
                 logging.info("Logging out of host: %s" % self.auth_url.toString())
                 if delete_cookies and self.cookie_persistence:
-                    self.authn_session_page.profile().cookieStore().deleteAllCookies()
+                    if self.authn_session_page:
+                        self.authn_session_page.profile().cookieStore().deleteAllCookies()
                 self._session.delete(self.auth_url.toString() + "/authn/session")
                 if self.credential_file:
                     creds = read_credential(self.credential_file, create_default=True)
@@ -200,7 +212,7 @@ class AuthWidget(QWebEngineView):
             qApp.restoreOverrideCursor()
             self.set_current_html(SUCCESS_HTML)
             try:
-                self.authn_session = json.loads(content)
+                self.authn_session = json.loads(content) if isinstance(content, str) else content
             except json.JSONDecodeError:
                 raise RuntimeError("Unable to parse response from server: %s" % content)
             seconds_remaining = self.authn_session['seconds_remaining']
@@ -266,7 +278,7 @@ class AuthWidget(QWebEngineView):
                 creds = read_credential(self.credential_file, create_default=True)
                 creds.update(cred_entry)
                 write_credential(self.credential_file, creds)
-            self.token = cookie_val
+            self.token = "Cookie %s" % cookie_val
             self._session.cookies.set(self.authn_cookie_name, cookie_val, domain=host, path='/')
             if self.cookie_jar is not None:
                 self.cookie_jar.set_cookie(
