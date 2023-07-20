@@ -75,7 +75,6 @@ class UploadWindow(QMainWindow):
         self.getNewAuthWindow()
         if not self.checkVersion():
             return
-        self.getSession()
 
     def getNewAuthWindow(self):
         if self.auth_window:
