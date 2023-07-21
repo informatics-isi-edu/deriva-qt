@@ -448,6 +448,8 @@ class UploadWindow(QMainWindow):
                 self.getNewAuthWindow()
             else:
                 return
+        if self.auth_window.authenticated():
+            return
         self.auth_window.show()
         self.auth_window.login()
 
@@ -482,7 +484,7 @@ class UploadWindow(QMainWindow):
         self.deleteLater()
 
     def logoutConfirmation(self):
-        if self.auth_window and (not self.auth_window.authenticated() or not self.auth_window.cookie_persistence):
+        if self.auth_window and (not self.auth_window.authenticated(False) or not self.auth_window.cookie_persistence):
             return
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)

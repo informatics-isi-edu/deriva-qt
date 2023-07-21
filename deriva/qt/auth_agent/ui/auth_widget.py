@@ -109,17 +109,20 @@ class AuthWidget(QWebEngineView):
         self.update()
         qApp.processEvents()
 
-    def authenticated(self):
-        if self.authn_session is None:
+    def authenticated(self, get_session=True):
+        if self.authn_session is None and get_session:
             credentials = get_credential(self.config["host"])
             if credentials and 'bearer-token' in credentials:
-                self._session.headers.update(
-                    {'Authorization': 'Bearer {token}'.format(token=credentials['bearer-token'])})
-                r = self._session.get(self.auth_url.toString() + "/authn/session")
-                if r.status_code == 200:
-                    self._onSessionContent(r.json())
-                    self.token = self._session.headers["Authorization"]
-                    return True
+                if not self.token:
+                    logging.info("Authenticating to [%s] using externally issued bearer token." %
+                                 self.auth_url.toString())
+                    self._session.headers.update(
+                        {'Authorization': 'Bearer {token}'.format(token=credentials['bearer-token'])})
+                    r = self._session.get(self.auth_url.toString() + "/authn/session")
+                    if r.status_code == 200:
+                        self._onSessionContent(r.json())
+                        self.token = self._session.headers["Authorization"]
+                        return True
             return False
 
         now = time.time()
@@ -134,7 +137,7 @@ class AuthWidget(QWebEngineView):
         if not (self.auth_url and (self.auth_url.host() and self.auth_url.scheme())):
             logging.error("Missing or invalid hostname parameter in configuration.")
             return
-        logging.info("Authenticating with host: %s" % self.auth_url.toString())
+        logging.info("Authenticating to host: %s" % self.auth_url.toString())
         qApp.setOverrideCursor(Qt.WaitCursor)
         self._cleanup()
         self.authn_session_page = QWebEnginePage(self.private_profile, self.parent) \
@@ -156,9 +159,14 @@ class AuthWidget(QWebEngineView):
     def logout(self, delete_cookies=False):
         if not (self.auth_url and (self.auth_url.host() and self.auth_url.scheme())):
             return
-        if self.authenticated():
+        if self.authenticated(False):
             try:
                 logging.info("Logging out of host: %s" % self.auth_url.toString())
+                auth_header = self._session.headers.get("Authorization")
+                if auth_header and (auth_header.startswith("Bearer ") or auth_header.startswith("bearer ")):
+                    logging.info("An externally created bearer token was used to login to: %s. The logout process will "
+                                 "invalidate your current session but will not automatically revoke this token." %
+                                 self.auth_url.toString())
                 if delete_cookies and self.cookie_persistence:
                     if self.authn_session_page:
                         self.authn_session_page.profile().cookieStore().deleteAllCookies()

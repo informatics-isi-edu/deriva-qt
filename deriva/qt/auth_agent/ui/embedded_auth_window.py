@@ -32,8 +32,8 @@ class EmbeddedAuthWindow(QMainWindow):
         self.cookie_persistence = cookie_persistence
         self.log_level = log_level
 
-    def authenticated(self):
-        return self.ui.authWidget.authenticated()
+    def authenticated(self, get_session=True):
+        return self.ui.authWidget.authenticated(get_session)
 
     def login(self):
         self.ui.authWidget.login()
