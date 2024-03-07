@@ -73,6 +73,9 @@ class UploadWindow(QMainWindow):
         self.setWindowTitle("%s (%s)" % (self.ui.title, self.uploader.server["host"]))
 
         self.getNewAuthWindow()
+        credential = self.auth_window.ui.authWidget.credential if self.auth_window.authenticated() else None
+        self.uploader.setCredentials(credential)
+
         if not self.checkVersion():
             return
 
@@ -105,11 +108,11 @@ class UploadWindow(QMainWindow):
 
     def enableControls(self):
         self.ui.actionUpload.setEnabled(self.canUpload())
-        self.ui.actionRescan.setEnabled(self.current_path is not None and self.auth_window.authenticated())
+        self.ui.actionRescan.setEnabled(self.current_path is not None and self.auth_window.authenticated(False))
         self.ui.actionCancel.setEnabled(False)
         self.ui.actionOptions.setEnabled(True)
-        self.ui.actionLogin.setEnabled(not self.auth_window.authenticated())
-        self.ui.actionLogout.setEnabled(self.auth_window.authenticated())
+        self.ui.actionLogin.setEnabled(not self.auth_window.authenticated(False))
+        self.ui.actionLogout.setEnabled(self.auth_window.authenticated(False))
         self.ui.actionExit.setEnabled(True)
         self.ui.browseButton.setEnabled(True)
 
@@ -269,7 +272,6 @@ class UploadWindow(QMainWindow):
             return False
 
         self.checkAllowSessionCaching()
-        self.resetUI("Ready...")
         return True
 
     def updateConfirmation(self):
@@ -337,7 +339,7 @@ class UploadWindow(QMainWindow):
             if self.current_path:
                 self.ui.actionRescan.setEnabled(True)
                 self.ui.actionUpload.setEnabled(True)
-            self.updateStatus("Logged in.")
+            self.updateStatus("Logged in to host: %s" % self.uploader.server["host"])
             self.updateConfig()
         else:
             self.updateStatus("Login required.")
@@ -349,6 +351,7 @@ class UploadWindow(QMainWindow):
             self.resetUI(status, detail)
             return
         if not result:
+            self.resetUI("Ready...")
             return
         confirm_updates = stob(self.uploader.server.get("confirm_updates", False))
         if confirm_updates:
@@ -371,6 +374,7 @@ class UploadWindow(QMainWindow):
         self.uploader.initialize(cleanup=False)
         if not self.checkVersion():
             return
+        self.resetUI("Ready...")
         self.on_actionRescan_triggered()
 
     @pyqtSlot()

@@ -122,6 +122,7 @@ class AuthWidget(QWebEngineView):
                     if r.status_code == 200:
                         self._onSessionContent(r.json())
                         self.token = self._session.headers["Authorization"]
+                        self.credential = credentials
                         return True
             return False
 
