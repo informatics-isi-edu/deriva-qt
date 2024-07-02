@@ -74,7 +74,8 @@ class UploadWindow(QMainWindow):
 
         self.getNewAuthWindow()
         credential = self.auth_window.ui.authWidget.credential if self.auth_window.authenticated() else None
-        self.uploader.setCredentials(credential)
+        if credential:
+            self.uploader.setCredentials(credential)
 
         if not self.checkVersion():
             return
