@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import qApp
 from PyQt5.QtNetwork import QNetworkCookie
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineProfile
 from deriva.core import read_config, read_credential, write_credential, get_credential, load_cookies_from_file, \
-    format_exception, DEFAULT_SESSION_CONFIG, DEFAULT_CREDENTIAL, DEFAULT_COOKIE_JAR_FILE
+    format_exception, DEFAULT_SESSION_CONFIG, DEFAULT_CREDENTIAL, DEFAULT_CREDENTIAL_FILE, DEFAULT_COOKIE_JAR_FILE
 from deriva.core.utils.version_utils import get_installed_version
 from deriva.qt import __version__ as VERSION
 
@@ -79,7 +79,7 @@ class AuthWidget(QWebEngineView):
 
     def configure(self, config, credential_file):
         self.config = config if config else read_config(self.config_file, create_default=True, default=DEFAULT_CONFIG)
-        self.credential_file = credential_file
+        self.credential_file = credential_file if credential_file else DEFAULT_CREDENTIAL_FILE
         host = self.config.get("host")
         if not host:
             self.set_current_html(ERROR_HTML % "Could not locate hostname parameter in configuration.")
