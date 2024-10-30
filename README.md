@@ -28,5 +28,5 @@ TBD
 
 ## Additional information
 Links:
-* [Build status](http://buildbot.isrd.isi.edu/)
-* [Downloads](http://buildbot.isrd.isi.edu/~buildbot/deriva-client-bundle/)
+* [Build status](http://buildbot.derivacloud.org/)
+* [Downloads](http://buildbot.derivacloud.org/~buildbot/deriva-client-bundle/)
