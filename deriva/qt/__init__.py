@@ -1,4 +1,4 @@
-__version__ = "1.7.4"
+__version__ = "1.7.9"
 
 from deriva.qt.common.async_task import async_execute, Task
 from deriva.qt.common.log_widget import QPlainTextEditLogger
